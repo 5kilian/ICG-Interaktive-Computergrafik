@@ -1,5 +1,4 @@
 let gl;
-
 let positions = [];
 
 	
@@ -34,28 +33,6 @@ function drawPacMan(radius, numberOfVertices, amgleMouth) {
 		colors.push(1, 1, 0, 1);
 	}
 	
-	/*const mund = [0,0,
-					 radius * Math.cos(2*Math.PI*((amgleMouth/2)/360)), radius * Math.sin(2*Math.PI*((amgleMouth/2)/360)),  			 
-					 radius * Math.cos(2*Math.PI*((360-(amgleMouth/2))/360)), radius * Math.sin(2*Math.PI*((360-(amgleMouth/2))/360)),
-					 			 
-					 
-					 radius * Math.cos(2*Math.PI*((amgleMouth/2)/360)), radius * Math.sin(2*Math.PI*((amgleMouth/2)/360)),  					 
-					 radius * Math.cos(2*Math.PI*((360-(amgleMouth/2))/360)), radius * Math.sin(2*Math.PI*((360-(amgleMouth/2))/360)),				 
-					 2*radius + radius * Math.cos(2*Math.PI*((amgleMouth/2)/360)), radius * Math.sin(2*Math.PI*((amgleMouth/2)/360)),
-					 
-					 				 
-					radius * Math.cos(2*Math.PI*((360-(amgleMouth/2))/360)), radius * Math.sin(2*Math.PI*((360-(amgleMouth/2))/360)), 
-					2*radius + radius * Math.cos(2*Math.PI*((amgleMouth/2)/360)), radius * Math.sin(2*Math.PI*((amgleMouth/2)/360)),				 
-					2*radius +  radius * Math.cos(2*Math.PI*((360-(amgleMouth/2))/360)), radius * Math.sin(2*Math.PI*((360-(amgleMouth/2))/360))
-	]
-	
-	for(i=0; i<9; i++){
-		colors.push(1, 1, 1, 1);
-	}
-
-	positions = positions.concat(mund)*/
-
-	
 
 
 	// 4. Init shader program via additional function and bind it
@@ -88,5 +65,5 @@ function render()
 	gl.drawArrays(gl.TRIANGLES, 0, positions.length/2);
 }
 
-drawPacMan(0.6, 12, 120);
+drawPacMan(0.6, 30, 40);
 
