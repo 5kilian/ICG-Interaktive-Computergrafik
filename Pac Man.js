@@ -11,23 +11,22 @@ function drawPacMan(radius, numberOfVertices, amgleMouth) {
 	// 2. Configure viewport
 	gl.viewport(0,0,canvas.width,canvas.height);
 	gl.clearColor(1.0,1.0,1.0,1.0);
-
 	
+	//3. Calculate Pac-Man shape
 	const colors = [];
+	const dreieckWinkel = (360/numberOfVertices);	
+	const mund = (amgleMouth/2)/dreieckWinkel;
 	
-	let enf = (amgleMouth/2)/(360/numberOfVertices);
-
-	
-	for(i=enf*(360/numberOfVertices); i<360-enf*(360/numberOfVertices); i+=(360/numberOfVertices)){
-		positions.push(0,0)
+	for(i=mund*dreieckWinkel; i<360-mund*dreieckWinkel; i+=dreieckWinkel){
+		positions.push(0,0) //Erste Koordinaten für das Dreieck
 		
-		const x = radius * Math.cos(2*Math.PI*(i/360));
-		const y = radius * Math.sin(2*Math.PI*(i/360));
+		const x1 = radius * Math.cos(Math.PI*(i/180)); //Zweite Koordinaten für das Dreieck
+		const y1 = radius * Math.sin(Math.PI*(i/180));
 		
-		const x1 = radius * Math.cos(2*Math.PI*((i+(360/numberOfVertices))/360));
-		const y1 = radius * Math.sin(2*Math.PI*((i+(360/numberOfVertices))/360));
+		const x2 = radius * Math.cos(Math.PI*((i+dreieckWinkel)/180)); //Dritte Koordinaten für das Dreieck
+		const y2 = radius * Math.sin(Math.PI*((i+dreieckWinkel)/180));
 		
-		positions.push(x, y, x1, y1);
+		positions.push(x1, y1, x2, y2);
 		colors.push(1, 1, 0, 1);
 		colors.push(1, 1, 0, 1);
 		colors.push(1, 1, 0, 1);
@@ -65,5 +64,5 @@ function render()
 	gl.drawArrays(gl.TRIANGLES, 0, positions.length/2);
 }
 
-drawPacMan(0.6, 30, 40);
+drawPacMan(1, 30, 45);
 
