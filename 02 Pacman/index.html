@@ -26,9 +26,18 @@
 		</script>
 		<script type="text/javascript" src="common/initShaders.js"></script>
 		<style>
+			@import url(common/PAC-FONT.TTF);
+			@font-face {
+				font-family: 'PacFont';
+				src: url('common/PAC-FONT.TTF')
+				format('truetype');
+			}
 			body {
 				max-width: 1000px;
 				margin: auto;
+			}
+			h1 {
+				font-family: 'PacFont', serif;
 			}
 			#gl-canvas {
 				border: 1px solid #00000066;
@@ -38,7 +47,7 @@
 		</style>
 	</head>
 	<body onload="init()">
-		<h1>Pacman 2.0</h1>
+		<h1>PACMAN</h1> 2.0
 
 		<canvas id="gl-canvas" width="512" height="512">
 			If you see this, your browser doesn't support WebGL.
