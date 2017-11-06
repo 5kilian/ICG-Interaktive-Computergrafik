@@ -1,0 +1,49 @@
+﻿<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8"/>
+		<title>02 Pacman WebGL</title>
+		
+		<script id="vertex-shader" type="x-shader/x-vertex">
+			attribute vec4 vPosition;
+			attribute vec4 vColor;
+
+			varying vec4 fColor;
+			void main() {
+				fColor = vColor;
+				gl_Position = vPosition;
+			}
+		</script>
+		<script id="fragment-shader" type="x-shader/x-fragment">
+			#ifdef GL_ES
+			precision mediump float;
+			#endif
+			
+			varying vec4 fColor;
+			void main() {
+				gl_FragColor = fColor;
+			}
+		</script>
+		<script type="text/javascript" src="common/initShaders.js"></script>
+		<style>
+			body {
+				max-width: 1000px;
+				margin: auto;
+			}
+			#gl-canvas {
+				border: 1px solid #00000066;
+				margin: auto;
+				display: block
+			}
+		</style>
+	</head>
+	<body onload="init()">
+		<h1>Pacman 2.0</h1>
+
+		<canvas id="gl-canvas" width="512" height="512">
+			If you see this, your browser doesn't support WebGL.
+		</canvas>
+
+		<script src="pacman.js" type="text/javascript"></script>
+	</body>
+</html>
