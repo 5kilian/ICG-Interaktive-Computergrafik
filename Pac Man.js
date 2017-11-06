@@ -1,3 +1,11 @@
+/*Gruppenmitglieder: 
+Daniel Laskow 6791909
+Tim Kilian 6824270
+Dewin Bagci 6815336
+Anup Kumar Rana 6437137
+*/
+
+
 let gl;
 let positions = [];
 
