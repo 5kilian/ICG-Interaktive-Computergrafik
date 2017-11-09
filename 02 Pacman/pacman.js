@@ -31,14 +31,16 @@ function GlCanvas() {
     this.render = () => {
         this.gl.clearColor(0, 0, 0, 1);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-        this.gl.drawArrays(this.gl.TRIANGLES, 0, this.draw());
+        for(let i=0; i<this.objects.length; i++){
+            this.gl.drawArrays(this.gl.TRIANGLES, 0, this.drawObject(this.objects[i]));
+        }
+        
     };
 
-    this.draw = () => {
-        let [positions, colors] = this.objects.reduce((result, object) => [
-            result[0].concat(object.positions),
-            result[1].concat(object.colors)
-        ], [[],[]]);
+
+    this.drawObject = (object) => {
+        let positions = object.positions;
+        let colors = object.colors;
 
         // 5. Create VBO
         let vbo = this.gl.createBuffer();
@@ -55,9 +57,28 @@ function GlCanvas() {
         let vColor = this.gl.getAttribLocation(this.program, "vColor");
         this.gl.enableVertexAttribArray(vColor);
         this.gl.vertexAttribPointer(vColor, 4, this.gl.FLOAT, false, 0, positions.length * 4);
+        
+        //Erstelle Rotationsmatrix
+		let vRotation = this.gl.getUniformLocation(this.program, "vRotation");
+	
+		let rotation =  object.orientation;
+		let rotationsMatrix = [Math.cos(rotation), Math.sin(rotation), 0, 0,
+                                -Math.sin(rotation), Math.cos(rotation), 0, 0,
+                                0,                  0,                  1,  0,
+                                0,                  0,                  0,  1];
+        this.gl.uniformMatrix4fv(vRotation, false, rotationsMatrix);
+        
+        //Erstelle Translation
+        let vTranslation = this.gl.getUniformLocation(this.program, "vTranslation");
+
+        let tX = object.tx;
+        let tY = object.ty;
+        this.gl.uniform3fv(vTranslation, [tX, tY, 0])
 
         return positions.length / 2;
     };
+
+
 
     this.canvas = null;
     this.gl = null;
@@ -66,23 +87,30 @@ function GlCanvas() {
     this.construct();
 }
 
-function GlObject(x, y) {
+function GlObject(tx, ty) {
 
     this.construct = () => {
         canvas.add(this);
     };
 
-    this.setPosition = (x, y) => {
-        this.x = x/100;
-        this.y = y/100;
+    this.translate = (tx, ty) => {
+        this.tx += tx/100;
+        this.ty += ty/100;
     };
+	
+	this.rotate = degree => {
+		this.orientation = degree;
+    }
 
-    this.x = 0;
-    this.y = 0;
-    this.setPosition(x, y);
+    this.tx = 0;
+    this.ty = 0;
+    this.translate(tx, ty);
+	this.orientation = 0;
     this.positions = [];
     this.colors = [];
 }
+
+
 
 function Pacman(x, y) {
 
@@ -100,13 +128,13 @@ function Pacman(x, y) {
         for (let i=mouth*triangleAngle; i<360 - mouth*triangleAngle; i+=triangleAngle) {
             this.positions.push(
                 // Erste Koordinaten für das Dreieck
-                this.x, this.y,
+                0, 0,
                 // Zweite Koordinaten für das Dreieck
-                this.x + radius * Math.cos(Math.PI*(i/180)),
-                this.y + radius * Math.sin(Math.PI*(i/180)),
+                radius * Math.cos(degreeToRadians(i)),
+                radius * Math.sin(degreeToRadians(i)),
                 // Dritte Koordinaten für das Dreieck
-                this.x + radius * Math.cos(Math.PI*((i+triangleAngle)/180)),
-                this.y + radius * Math.sin(Math.PI*((i+triangleAngle)/180))
+                radius * Math.cos(degreeToRadians(i+triangleAngle)),
+                radius * Math.sin(degreeToRadians(i+triangleAngle))
             );
             for (let j=0; j<3; j++) this.colors.push(1, 1, 0, 1);
         }
@@ -115,11 +143,25 @@ function Pacman(x, y) {
     this.construct();
 }
 
+
+const degreeToRadians = degree => {
+    return (degree/180) * Math.PI;
+}
+
 let canvas = new GlCanvas();
 
+
 function init() {
-    new Pacman(0, 50).scale(0.25, 30, 50);
-    new Pacman(0, -5).scale(0.15, 8, 45);
+   let pacman1 = new Pacman(0, 30);
+   pacman1.translate(50,0);
+   pacman1.scale(0.45, 30, 50);
+   pacman1.rotate(degreeToRadians(-70));
+   
+
+   let pacman2 = new Pacman(-80, -40);
+   pacman2.translate(50,0);
+   pacman2.scale(0.15, 20, 90);
+   pacman2.rotate(degreeToRadians(210))
 
     // 8. Render
     canvas.render();
