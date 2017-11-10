@@ -28,6 +28,13 @@ function GlCanvas() {
         this.objects.push(object);
     };
 
+    this.remove = (object) => {
+        var index = this.objects.indexOf(object);
+        if (index > -1) {
+            this.objects.splice(index, 1);
+        }
+    };
+
     this.render = () => {
         this.gl.clearColor(0, 0, 0, 1);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT);
@@ -62,8 +69,8 @@ function GlCanvas() {
 		let vRotation = this.gl.getUniformLocation(this.program, "vRotation");
 	
 		let rotation =  object.orientation;
-		let rotationsMatrix = [Math.cos(rotation), Math.sin(rotation), 0, 0,
-                                -Math.sin(rotation), Math.cos(rotation), 0, 0,
+		let rotationsMatrix = [ Math.cos(rotation), Math.sin(rotation), 0, 0,
+                               -Math.sin(rotation), Math.cos(rotation), 0, 0,
                                 0,                  0,                  1,  0,
                                 0,                  0,                  0,  1];
         this.gl.uniformMatrix4fv(vRotation, false, rotationsMatrix);
@@ -94,12 +101,12 @@ function GlObject(tx, ty) {
     };
 
     this.translate = (tx, ty) => {
-        this.tx += tx/100;
-        this.ty += ty/100;
+        this.tx += tx;
+        this.ty += ty;
     };
 	
 	this.rotate = degree => {
-		this.orientation = degree;
+		this.orientation += degreeToRadians(degree);
     }
 
     this.tx = 0;
@@ -116,11 +123,13 @@ function Pacman(x, y) {
 
     GlObject.call(this, x, y);
 
-    this.scale = (radius, vertices, mouthAngle) => {
+    this.build = (radius, vertices, mouthAngle) => {
         this.positions = [];
         this.colors = [];
+        this.radius = radius;
+        this.vertices = vertices;
+        this.mouthAngle = mouthAngle;
 
-        // 3. Specify geometry
         const triangleAngle = 360 / vertices;
         const mouth = mouthAngle / 2 / triangleAngle;
 
@@ -131,15 +140,17 @@ function Pacman(x, y) {
                 0, 0,
                 // Zweite Koordinaten für das Dreieck
                 radius * Math.cos(degreeToRadians(i)),
-                radius * Math.sin(degreeToRadians(i)),
+                (1+mouthAngle/500) * radius * Math.sin(degreeToRadians(i)),
                 // Dritte Koordinaten für das Dreieck
                 radius * Math.cos(degreeToRadians(i+triangleAngle)),
-                radius * Math.sin(degreeToRadians(i+triangleAngle))
+                (1+mouthAngle/500) * radius * Math.sin(degreeToRadians(i+triangleAngle))
             );
             for (let j=0; j<3; j++) this.colors.push(1, 1, 0, 1);
         }
     };
-
+    this.mouthAngle = 0;
+    this.radius = 0;
+    this.vertices = 0;
     this.construct();
 }
 
@@ -151,17 +162,53 @@ const degreeToRadians = degree => {
 let canvas = new GlCanvas();
 
 
+
 function init() {
-   let pacman1 = new Pacman(0, 30);
-   pacman1.translate(50,0);
-   pacman1.scale(0.45, 30, 50);
+   let pacman1 = new Pacman(0, 0.3);
+   pacman1.translate(0.5,0);
+   pacman1.build(0.25, 100, 50);
    pacman1.rotate(degreeToRadians(-70));
    
+    const maxMouthAngle = 110;
+    let mouthClosing = true;
 
-   let pacman2 = new Pacman(-80, -40);
-   pacman2.translate(50,0);
-   pacman2.scale(0.15, 20, 90);
-   pacman2.rotate(degreeToRadians(210))
+   document.addEventListener('keypress', function(event) {
+     if(event.keyCode == 38){  
+            tx = 0.04*Math.cos(pacman1.orientation);   
+            ty = 0.04*Math.sin(pacman1.orientation);
+
+            //Ist Pac-Man noch im Canvas?
+            if(pacman1.tx + tx + pacman1.radius <= 1 && pacman1.ty + ty + pacman1.radius <= 1 && pacman1.tx + tx- pacman1.radius> -1 && pacman1.ty + ty - pacman1.radius> -1){
+                pacman1.translate(tx,ty);
+            }
+        
+            if(mouthClosing){
+               if(pacman1.mouthAngle + 10 <= maxMouthAngle){
+                    pacman1.build(pacman1.radius, pacman1.vertices, pacman1.mouthAngle + 10)
+                    canvas.remove(pacman1);
+                    canvas.add(pacman1);
+                } else{
+                    mouthClosing = false;
+                }
+            }
+            else {
+                if(pacman1.mouthAngle - 10 > 0){
+                    pacman1.build(pacman1.radius, pacman1.vertices, pacman1.mouthAngle - 10)
+                    canvas.remove(pacman1);
+                    canvas.add(pacman1);
+                }else{
+                    mouthClosing = true;
+                }
+            }
+        }
+        else if(event.keyCode == 37){
+            pacman1.rotate(1);
+        }
+        else if(event.keyCode == 39){
+            pacman1.rotate(-1);
+        }
+        canvas.render();
+    });
 
     // 8. Render
     canvas.render();
