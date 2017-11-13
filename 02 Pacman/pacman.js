@@ -28,26 +28,17 @@ function GlCanvas() {
         this.objects.push(object);
     };
 
-    this.remove = (object) => {
-        var index = this.objects.indexOf(object);
-        if (index > -1) {
-            this.objects.splice(index, 1);
-        }
-    };
-
     this.render = () => {
         this.gl.clearColor(0, 0, 0, 1);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-        for(let i=0; i<this.objects.length; i++){
-            this.gl.drawArrays(this.gl.TRIANGLES, 0, this.drawObject(this.objects[i]));
-        }
-        
+        this.gl.drawArrays(this.gl.TRIANGLES, 0, this.draw());
     };
 
-
-    this.drawObject = (object) => {
-        let positions = object.positions;
-        let colors = object.colors;
+    this.draw = () => {
+        let [positions, colors] = this.objects.reduce((result, object) => [
+            result[0].concat(object.positions),
+            result[1].concat(object.colors)
+        ], [[],[]]);
 
         // 5. Create VBO
         let vbo = this.gl.createBuffer();
@@ -64,28 +55,9 @@ function GlCanvas() {
         let vColor = this.gl.getAttribLocation(this.program, "vColor");
         this.gl.enableVertexAttribArray(vColor);
         this.gl.vertexAttribPointer(vColor, 4, this.gl.FLOAT, false, 0, positions.length * 4);
-        
-        //Erstelle Rotationsmatrix
-		let vRotation = this.gl.getUniformLocation(this.program, "vRotation");
-	
-		let rotation =  object.orientation;
-		let rotationsMatrix = [ Math.cos(rotation), Math.sin(rotation), 0, 0,
-                               -Math.sin(rotation), Math.cos(rotation), 0, 0,
-                                0,                  0,                  1,  0,
-                                0,                  0,                  0,  1];
-        this.gl.uniformMatrix4fv(vRotation, false, rotationsMatrix);
-        
-        //Erstelle Translation
-        let vTranslation = this.gl.getUniformLocation(this.program, "vTranslation");
-
-        let tX = object.tx;
-        let tY = object.ty;
-        this.gl.uniform3fv(vTranslation, [tX, tY, 0])
 
         return positions.length / 2;
     };
-
-
 
     this.canvas = null;
     this.gl = null;
@@ -94,42 +66,33 @@ function GlCanvas() {
     this.construct();
 }
 
-function GlObject(tx, ty) {
+function GlObject(x, y) {
 
     this.construct = () => {
         canvas.add(this);
     };
 
-    this.translate = (tx, ty) => {
-        this.tx += tx;
-        this.ty += ty;
+    this.setPosition = (x, y) => {
+        this.x = x/100;
+        this.y = y/100;
     };
-	
-	this.rotate = degree => {
-		this.orientation += degreeToRadians(degree);
-    }
 
-    this.tx = 0;
-    this.ty = 0;
-    this.translate(tx, ty);
-	this.orientation = 0;
+    this.x = 0;
+    this.y = 0;
+    this.setPosition(x, y);
     this.positions = [];
     this.colors = [];
 }
-
-
 
 function Pacman(x, y) {
 
     GlObject.call(this, x, y);
 
-    this.build = (radius, vertices, mouthAngle) => {
+    this.scale = (radius, vertices, mouthAngle) => {
         this.positions = [];
         this.colors = [];
-        this.radius = radius;
-        this.vertices = vertices;
-        this.mouthAngle = mouthAngle;
 
+        // 3. Specify geometry
         const triangleAngle = 360 / vertices;
         const mouth = mouthAngle / 2 / triangleAngle;
 
@@ -137,78 +100,26 @@ function Pacman(x, y) {
         for (let i=mouth*triangleAngle; i<360 - mouth*triangleAngle; i+=triangleAngle) {
             this.positions.push(
                 // Erste Koordinaten für das Dreieck
-                0, 0,
+                this.x, this.y,
                 // Zweite Koordinaten für das Dreieck
-                radius * Math.cos(degreeToRadians(i)),
-                (1+mouthAngle/500) * radius * Math.sin(degreeToRadians(i)),
+                this.x + radius * Math.cos(Math.PI*(i/180)),
+                this.y + radius * Math.sin(Math.PI*(i/180)),
                 // Dritte Koordinaten für das Dreieck
-                radius * Math.cos(degreeToRadians(i+triangleAngle)),
-                (1+mouthAngle/500) * radius * Math.sin(degreeToRadians(i+triangleAngle))
+                this.x + radius * Math.cos(Math.PI*((i+triangleAngle)/180)),
+                this.y + radius * Math.sin(Math.PI*((i+triangleAngle)/180))
             );
             for (let j=0; j<3; j++) this.colors.push(1, 1, 0, 1);
         }
     };
-    this.mouthAngle = 0;
-    this.radius = 0;
-    this.vertices = 0;
+
     this.construct();
-}
-
-
-const degreeToRadians = degree => {
-    return (degree/180) * Math.PI;
 }
 
 let canvas = new GlCanvas();
 
-
-
 function init() {
-   let pacman1 = new Pacman(0, 0.3);
-   pacman1.translate(0.5,0);
-   pacman1.build(0.25, 100, 50);
-   pacman1.rotate(degreeToRadians(-70));
-   
-    const maxMouthAngle = 110;
-    let mouthClosing = true;
-
-   document.addEventListener('keypress', function(event) {
-     if(event.keyCode == 38){  
-            tx = 0.04*Math.cos(pacman1.orientation);   
-            ty = 0.04*Math.sin(pacman1.orientation);
-
-            //Ist Pac-Man noch im Canvas?
-            if(pacman1.tx + tx + pacman1.radius <= 1 && pacman1.ty + ty + pacman1.radius <= 1 && pacman1.tx + tx- pacman1.radius> -1 && pacman1.ty + ty - pacman1.radius> -1){
-                pacman1.translate(tx,ty);
-            }
-        
-            if(mouthClosing){
-               if(pacman1.mouthAngle + 10 <= maxMouthAngle){
-                    pacman1.build(pacman1.radius, pacman1.vertices, pacman1.mouthAngle + 10)
-                    canvas.remove(pacman1);
-                    canvas.add(pacman1);
-                } else{
-                    mouthClosing = false;
-                }
-            }
-            else {
-                if(pacman1.mouthAngle - 10 > 0){
-                    pacman1.build(pacman1.radius, pacman1.vertices, pacman1.mouthAngle - 10)
-                    canvas.remove(pacman1);
-                    canvas.add(pacman1);
-                }else{
-                    mouthClosing = true;
-                }
-            }
-        }
-        else if(event.keyCode == 37){
-            pacman1.rotate(1);
-        }
-        else if(event.keyCode == 39){
-            pacman1.rotate(-1);
-        }
-        canvas.render();
-    });
+    new Pacman(0, 50).scale(0.25, 30, 50);
+    new Pacman(0, -5).scale(0.15, 8, 45);
 
     // 8. Render
     canvas.render();
