@@ -170,15 +170,15 @@ function Pacman(x, y) {
         let ty = 0.04 * Math.sin(this.orientation);
 
         if (this.inCanvas(this.x + tx, this.y + ty)) {
-            if (this.mouthClosing) {
+            if (!this.mouthClosing) {
                 this.mouthAngle += 10;
                 if (this.mouthAngle > this.maxMouthAngle) {
-                    this.mouthClosing = false;
+                    this.mouthClosing = true;
                 }
             } else {
                 this.mouthAngle -= 10;
                 if (this.mouthAngle <= 0) {
-                    this.mouthClosing = true;
+                    this.mouthClosing = false;
                 }
             }
 
