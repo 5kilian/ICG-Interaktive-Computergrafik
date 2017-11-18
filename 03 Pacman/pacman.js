@@ -187,18 +187,27 @@ function Pacman(x, y) {
     };
 
     this.handleEvent = () => {
+        let secondKey = this.activeKeys[this.activeKeys.length-2];
         switch (this.activeKeys[this.activeKeys.length-1]) {
             case KEYCODE_RIGHT:
-                this.updateOrientation(0);
+                if (secondKey === KEYCODE_UP) this.updateOrientation(45);
+                else if (secondKey === KEYCODE_DOWN) this.updateOrientation(315);
+                else this.updateOrientation(0);
                 break;
             case KEYCODE_UP:
-                this.updateOrientation(90);
+                if (secondKey === KEYCODE_RIGHT) this.updateOrientation(45);
+                else if (secondKey === KEYCODE_LEFT) this.updateOrientation(135);
+                else this.updateOrientation(90);
                 break;
             case KEYCODE_LEFT:
-                this.updateOrientation(180);
+                if (secondKey === KEYCODE_UP) this.updateOrientation(135);
+                else if (secondKey === KEYCODE_DOWN) this.updateOrientation(225);
+                else this.updateOrientation(180);
                 break;
             case KEYCODE_DOWN:
-                this.updateOrientation(270);
+                if (secondKey === KEYCODE_RIGHT) this.updateOrientation(315);
+                else if (secondKey === KEYCODE_LEFT) this.updateOrientation(225);
+                else this.updateOrientation(270);
                 break;
         }
     };
