@@ -30,31 +30,35 @@ function GlCanvas() {
     };
 
     this.initialize = () => {
-        new Coin(-0.4, 0.2);
-        new Coin(-0.4, 0.1);
-        new Coin(-0.4, 0.0);
-        new Coin(-0.4, -0.1);
-        new Coin(-0.4, -0.2);
+        new Coin(-0.8, 0.4);
+        new Coin(-0.8, 0.2);
+        new Coin(-0.8, 0.0);
+        new Coin(-0.8, -0.2);
+        new Coin(-0.8, -0.4);
 
-        new Coin(-0.05, 0.2);
-        new Coin(-0.15, 0.2);
-        new Coin(-0.25, 0.1);
-        new Coin(-0.25, 0.0);
-        new Coin(-0.25, -0.1);
-        new Coin(-0.15, -0.2);
-        new Coin(-0.15, -0.2);
-        new Coin(-0.05, -0.2);
+        new Coin(-0.1, 0.4);
+        new Coin(-0.3, 0.4);
+        new Coin(-0.5, 0.2);
+        new Coin(-0.5, 0.0);
+        new Coin(-0.5, -0.2);
+        new Coin(-0.3, -0.4);
+        new Coin(-0.3, -0.4);
+        new Coin(-0.1, -0.4);
 
+        new Coin(0.4, 0.4);
+        new Coin(0.6, 0.4);
         new Coin(0.2, 0.2);
-        new Coin(0.3, 0.2);
-        new Coin(0.1, 0.1);
-        new Coin(0.1, 0.0);
-        new Coin(0.1, -0.1);
+        new Coin(0.2, 0.0);
         new Coin(0.2, -0.2);
-        new Coin(0.3, -0.2);
-        new Coin(0.4, -0.1);
-        new Coin(0.4, 0.0);
-        new Coin(0.3, 0.0);
+        new Coin(0.4, -0.4);
+        new Coin(0.6, -0.4);
+        new Coin(0.8, -0.2);
+        new Coin(0.8, 0.0);
+        new Coin(0.6, 0.0);
+
+        new Orange(0,0);
+        new Red(0,0);
+        new Pink(0,0);
 
         this.construct();
     };
@@ -284,7 +288,7 @@ function Coin(x, y) {
     GlObject.call(this, x, y);
 
     this.update = () => {
-        if (pacman.distance(2 * this.x + this.size / 2, 2 * this.y + this.size / 2) < pacman.radius) {
+        if (pacman.distance(this.x + this.size / 2, this.y + this.size / 2) < pacman.radius) {
             score.add(100);
             canvas.remove(this);
         }
@@ -292,13 +296,8 @@ function Coin(x, y) {
 
     this.scale = (size) => {
         this.size = size;
+        this.positions = [0, 0, size, 0, size, size, 0, size];
         this.colors = [];
-        this.positions = [
-            this.x, this.y,
-            this.x + size, this.y,
-            this.x + size, this.y + size,
-            this.x, this.y + size
-        ];
         for (let i=0; i<this.positions.length/2; i++) this.colors.push(this.r, this.g, this.b, 1);
     };
 
@@ -311,6 +310,142 @@ function Coin(x, y) {
 
     this.scale(this.size);
     this.construct();
+}
+
+function Enemy(x, y) {
+
+    GlObject.call(this, x, y);
+
+    this.scale = (size) => {
+        this.size = size;
+        // Body
+        this.colors = [];
+        this.positions = [
+            -size/2, 0, -size/2, -size/2, size/2, -size/2,
+            size/2, -size/2, size/2, 0, -size/2, 0
+        ];
+        for (let i=0; i<this.positions.length/2; i++) this.colors.push(this.r, this.g, this.b, 1);
+
+        // Head
+        for (let i=0; i<25; i++) {
+            let phi = degreeToRadians(180 * i / 25);
+            let phi2 = degreeToRadians(180 * (i+1) / 25);
+
+            this.positions.push(
+                0,0,
+                size / 2 * Math.cos(phi), size / 2 * Math.sin(phi),
+                size / 2 * Math.cos(phi2), size / 2 * Math.sin(phi2));
+            this.colors.push(this.r, this.g, this.b, 1, this.r, this.g, this.b, 1, this.r, this.g, this.b, 1);
+        }
+
+        // Eye left
+        for (let i=0; i<=25; i++) {
+            let phi = degreeToRadians(360 * i / 25);
+            let phi2 = degreeToRadians(360 * (i+1) / 25);
+
+            this.positions.push(
+                -size/6, 0,
+                -size/6 + size/8 * Math.cos(phi), size/8 * Math.sin(phi),
+                -size/6 + size/8 * Math.cos(phi2), size/8 * Math.sin(phi2));
+            this.colors.push(1,1,1,1,1,1,1,1,1,1,1,1);
+        }
+
+        // Eye right
+        for (let i=0; i<=25; i++) {
+            let phi = degreeToRadians(360 * i / 25);
+            let phi2 = degreeToRadians(360 * (i+1) / 25);
+
+            this.positions.push(
+                size/6, 0,
+                size/6 + size/8 * Math.cos(phi), size/8 * Math.sin(phi),
+                size/6 + size/8 * Math.cos(phi2), size/8 * Math.sin(phi2));
+            this.colors.push(1,1,1,1,1,1,1,1,1,1,1,1);
+        }
+    };
+
+    this.move = () => {
+        let vx = Math.min(Math.abs(this.dx-this.x), this.speed);
+        let vy = Math.min(Math.abs(this.dy-this.y), this.speed);
+        this.translate(this.dx > this.x ? vx : -vx, this.dy > this.y ? vy : -vy);
+    };
+
+    /**
+     * abstract method
+     */
+    this.guessDestination = () => { };
+
+    this.dx = 0;
+    this.dy = 0;
+    this.size = 0.2;
+    this.glMode = canvas.gl.TRIANGLES;
+    this.speed = 0.005;
+    this.guessDestination();
+    this.construct();
+}
+
+function Orange(x, y) {
+    Enemy.call(this, x, y);
+
+    this.update = () => {
+        if (this.distance(this.dx, this.dy) > this.size) {
+            this.move();
+        } else {
+            this.guessDestination();
+        }
+    };
+
+    this.guessDestination = () => {
+        this.dx = 1 - Math.random() * 2;
+        this.dy = 1 - Math.random() * 2;
+    };
+
+    this.r = 1;
+    this.g = 0.64;
+    this.b = 0;
+    this.scale(this.size);
+}
+
+function Red(x, y) {
+    Enemy.call(this, x, y);
+
+    this.update = () => {
+        this.guessDestination();
+        if (this.distance(this.dx, this.dy) > this.size) {
+            this.move();
+        }
+    };
+
+    this.guessDestination = () => {
+        this.dx = pacman.x;
+        this.dy = pacman.y;
+    };
+
+    this.r = 1;
+    this.g = 0;
+    this.b = 0;
+    this.scale(this.size);
+}
+
+function Pink(x, y) {
+    Enemy.call(this, x, y);
+
+    this.update = () => {
+        if (this.distance(this.dx, this.dy) > this.size) {
+            this.move();
+        } else {
+            this.guessDestination();
+        }
+    };
+
+    this.guessDestination = () => {
+        this.dx = pacman.x;
+        this.dy = pacman.y;
+    };
+
+    this.r = 1;
+    this.g = 0.75;
+    this.b = 0.8;
+    this.scale(this.size);
 }
 
 function Score() {
