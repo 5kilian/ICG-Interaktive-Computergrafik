@@ -17,10 +17,6 @@ const radiansToDegree = radians => radians / Math.PI * 180;
 function GlCanvas() {
 
     this.construct = () => {
-        // 1. Get canvas and setup WebGL context
-        this.canvas = document.getElementById("gl-canvas");
-        this.gl = this.canvas.getContext('webgl');
-
         // 2. Configure viewport
         this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
         this.gl.clearColor(0, 0, 0, 1);
@@ -33,9 +29,34 @@ function GlCanvas() {
         requestAnimationFrame(this.tick);
     };
 
-    this.initialize = (x, y) => {
+    this.initialize = () => {
+        new Coin(-0.4, 0.2);
+        new Coin(-0.4, 0.1);
+        new Coin(-0.4, 0.0);
+        new Coin(-0.4, -0.1);
+        new Coin(-0.4, -0.2);
+
+        new Coin(-0.05, 0.2);
+        new Coin(-0.15, 0.2);
+        new Coin(-0.25, 0.1);
+        new Coin(-0.25, 0.0);
+        new Coin(-0.25, -0.1);
+        new Coin(-0.15, -0.2);
+        new Coin(-0.15, -0.2);
+        new Coin(-0.05, -0.2);
+
+        new Coin(0.2, 0.2);
+        new Coin(0.3, 0.2);
+        new Coin(0.1, 0.1);
+        new Coin(0.1, 0.0);
+        new Coin(0.1, -0.1);
+        new Coin(0.2, -0.2);
+        new Coin(0.3, -0.2);
+        new Coin(0.4, -0.1);
+        new Coin(0.4, 0.0);
+        new Coin(0.3, 0.0);
+
         this.construct();
-        this.activeObject = new Pacman(x, y).scale(0.25, 100, 45).translate(0.5, 0).rotate(180);
     };
 
     this.add = (object) => {
@@ -66,7 +87,7 @@ function GlCanvas() {
     this.render = () => {
         this.gl.clearColor(0, 0, 0, 1);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-        this.objects.forEach(object => this.gl.drawArrays(this.gl.TRIANGLES, 0, this.drawObject(object)));
+        this.objects.forEach(object => this.gl.drawArrays(object.glMode, 0, this.drawObject(object)));
     };
 
 
@@ -113,8 +134,9 @@ function GlCanvas() {
         this.activeObject.keyChanged = true;
     };
 
-    this.canvas = null;
-    this.gl = null;
+    // 1. Get canvas and setup WebGL context
+    this.canvas = document.getElementById("gl-canvas");
+    this.gl = this.canvas.getContext('webgl');
     this.program = null;
     this.objects = [];
     this.activeObject = null;
@@ -157,6 +179,7 @@ function GlObject(x, y) {
     this.orientation = 0;
     this.positions = [];
     this.colors = [];
+    this.glMode = canvas.gl.TRIANGLE_FAN;
     this.activeKeys = [];
     this.keyChanged = false;
 }
@@ -213,29 +236,25 @@ function Pacman(x, y) {
     };
 
     this.scale = (radius, vertices, mouthAngle) => {
-        this.positions = [];
-        this.colors = [];
+        // Erste Koordinaten für das Dreieck
+        this.positions = [0, 0];
+        this.colors = [1, 1, 0, 1];
 
         this.radius = radius;
         this.vertices = vertices;
         this.mouthAngle = mouthAngle;
 
-        const angle = 360 / vertices;
-        const mouth = mouthAngle / 2 / angle;
+        let angle = Math.max(0, 360 - mouthAngle);
+        let mouth = degreeToRadians(mouthAngle/2);
+        let twoPI = 2*Math.PI;
 
         // Calculate Pac-Man shape
-        for (let degree = mouth * angle; degree < 360 - mouth * angle; degree += angle) {
-            let radian1 = degreeToRadians(degree);
-            let radian2 = degreeToRadians(degree + angle);
-            this.positions.push(
-                // Erste Koordinaten für das Dreieck
-                0, 0,
-                // Zweite Koordinaten für das Dreieck
-                radius * Math.cos(radian1), (1 + mouthAngle / 500) * radius * Math.sin(radian1),
-                // Dritte Koordinaten für das Dreieck
-                radius * Math.cos(radian2), (1 + mouthAngle / 500) * radius * Math.sin(radian2)
-            );
-            this.colors.push(1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1);
+        for (let i=0; i<vertices; i++) {
+            let phi = (degreeToRadians(angle * i / (vertices-1)) + mouth) % twoPI;
+
+            // Zweite Koordinaten für das Dreieck
+            this.positions.push(radius * Math.cos(phi), radius * Math.sin(phi));
+            this.colors.push(1, 1, 0, 1);
         }
         return this;
     };
@@ -255,10 +274,68 @@ function Pacman(x, y) {
     this.construct();
 }
 
+function Coin(x, y) {
+
+    GlObject.call(this, x, y);
+
+    this.update = () => {
+        let cx = this.x + this.size / 2;
+        let cy = this.y + this.size / 2;
+
+        let pacman = canvas.activeObject;
+        let distanceToPacman = Math.sqrt(Math.pow(cx - (pacman.x - this.x), 2) + Math.pow(cy - (pacman.y - this.y), 2));
+
+        if (distanceToPacman < pacman.radius) {
+            canvas.remove(this);
+            score.add(100);
+        }
+    };
+
+    this.scale = (size) => {
+        this.size = size;
+        this.colors = [];
+        this.positions = [
+            this.x, this.y,
+            this.x + size, this.y,
+            this.x + size, this.y + size,
+            this.x, this.y + size
+        ];
+        for (let i=0; i<this.positions.length/2; i++) this.colors.push(this.r, this.g, this.b, 1);
+    };
+
+    this.size = 0.1;
+    this.r = 0.97;
+    this.g = 0.69;
+    this.b = 0.56;
+    this.colors = [];
+    this.positions = [];
+
+    this.scale(this.size);
+    this.construct();
+}
+
+function Score() {
+
+    this.add = (value) => {
+        this.value += value;
+        this.update();
+    };
+
+    this.update = () => {
+        this.element.innerHTML = this.value;
+    };
+
+    this.element = document.getElementById('score');
+    this.value = 0;
+}
+
 let canvas = new GlCanvas();
+let pacman = new Pacman(0,-0.8).scale(0.15, 50, 90).translate(0.2,0).rotate(180);
+let score = new Score();
 
 function init() {
-    canvas.initialize(0, 0.3);
+    canvas.activeObject = pacman;
+    canvas.initialize();
 
     document.addEventListener('keydown', canvas.keyPressed);
     document.addEventListener('keyup', canvas.keyReleased);

@@ -34,6 +34,11 @@
 				src: url('common/PAC-FONT.TTF')
 				format('truetype');
 			}
+			@font-face {
+				font-family: 'Munro';
+				src: url('common/Munro.ttf')
+				format('truetype');
+			}
 			body {
 				max-width: 1000px;
 				margin: auto;
@@ -46,11 +51,21 @@
 				margin: auto;
 				display: block
 			}
+			.score {
+				font-family: 'Munro', serif;
+				width: 512px;
+				margin: auto;
+				font-size: 18px;
+			}
 		</style>
 	</head>
 	<body onload="init()">
 		<h1>PACMAN</h1> 3.0
 
+		<br>
+		<div class="score">
+			Score: <span id="score">0</span>
+		</div>
 		<canvas id="gl-canvas" width="512" height="512">
 			If you see this, your browser doesn't support WebGL.
 		</canvas>
