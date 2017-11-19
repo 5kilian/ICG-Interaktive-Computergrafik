@@ -173,6 +173,17 @@ function GlObject(x, y) {
         this.orientation = degreeToRadians(degree);
     };
 
+    /**
+     * Ist ein Objekt noch im Canvas?
+     */
+    this.inCanvas = (x, y) => {
+        return x + this.radius <= 1 && y + this.radius <= 1 && x - this.radius > -1 && y - this.radius > -1;
+    };
+
+    this.distance = (x, y) => {
+        return Math.sqrt(Math.pow(x - this.x, 2) + Math.pow(y - this.y, 2));
+    };
+
     this.x = 0;
     this.y = 0;
     this.translate(x, y);
@@ -189,8 +200,8 @@ function Pacman(x, y) {
     GlObject.call(this, x, y);
 
     this.update = () => {
-        let tx = 0.04 * Math.cos(this.orientation);
-        let ty = 0.04 * Math.sin(this.orientation);
+        let tx = this.speed * Math.cos(this.orientation);
+        let ty = this.speed * Math.sin(this.orientation);
 
         if (this.inCanvas(this.x + tx, this.y + ty)) {
             if (!this.mouthClosing) {
@@ -259,18 +270,12 @@ function Pacman(x, y) {
         return this;
     };
 
-    /**
-     * Ist Pac-Man noch im Canvas?
-     */
-    this.inCanvas = (x, y) => {
-        return x + this.radius <= 1 && y + this.radius <= 1 && x - this.radius > -1 && y - this.radius > -1;
-    };
-
     this.mouthAngle = 0;
     this.radius = 0;
     this.vertices = 0;
     this.maxMouthAngle = 90;
     this.mouthClosing = true;
+    this.speed = 0.04;
     this.construct();
 }
 
@@ -279,15 +284,9 @@ function Coin(x, y) {
     GlObject.call(this, x, y);
 
     this.update = () => {
-        let cx = this.x + this.size / 2;
-        let cy = this.y + this.size / 2;
-
-        let pacman = canvas.activeObject;
-        let distanceToPacman = Math.sqrt(Math.pow(cx - (pacman.x - this.x), 2) + Math.pow(cy - (pacman.y - this.y), 2));
-
-        if (distanceToPacman < pacman.radius) {
-            canvas.remove(this);
+        if (pacman.distance(2 * this.x + this.size / 2, 2 * this.y + this.size / 2) < pacman.radius) {
             score.add(100);
+            canvas.remove(this);
         }
     };
 
