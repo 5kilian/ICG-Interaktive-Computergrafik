@@ -207,7 +207,7 @@ function Pacman(x, y) {
         let tx = this.speed * Math.cos(this.orientation);
         let ty = this.speed * Math.sin(this.orientation);
 
-        if (this.inCanvas(this.x + tx, this.y + ty)) {
+        if (this.inCanvas(this.x + tx, this.y + ty) && this.speed > 0) {
             if (!this.mouthClosing) {
                 this.mouthAngle += 10;
                 if (this.mouthAngle > this.maxMouthAngle) {
@@ -274,6 +274,10 @@ function Pacman(x, y) {
         return this;
     };
 
+    this.die = () => {
+        this.speed = 0;
+    };
+
     this.mouthAngle = 0;
     this.radius = 0;
     this.vertices = 0;
@@ -315,6 +319,15 @@ function Coin(x, y) {
 function Enemy(x, y) {
 
     GlObject.call(this, x, y);
+
+    this.update = () => {
+        if (pacman.distance(this.x, this.y) < pacman.radius) {
+            pacman.die();
+            canvas.activeObject = this;
+        } else {
+            this.tactic();
+        }
+    };
 
     this.scale = (size) => {
         this.size = size;
@@ -372,6 +385,11 @@ function Enemy(x, y) {
     /**
      * abstract method
      */
+    this.tactic = () => { };
+
+    /**
+     * abstract method
+     */
     this.guessDestination = () => { };
 
     this.dx = 0;
@@ -386,7 +404,7 @@ function Enemy(x, y) {
 function Orange(x, y) {
     Enemy.call(this, x, y);
 
-    this.update = () => {
+    this.tactic = () => {
         if (this.distance(this.dx, this.dy) > this.size) {
             this.move();
         } else {
@@ -408,7 +426,7 @@ function Orange(x, y) {
 function Red(x, y) {
     Enemy.call(this, x, y);
 
-    this.update = () => {
+    this.tactic = () => {
         this.guessDestination();
         if (this.distance(this.dx, this.dy) > this.size) {
             this.move();
@@ -429,7 +447,7 @@ function Red(x, y) {
 function Pink(x, y) {
     Enemy.call(this, x, y);
 
-    this.update = () => {
+    this.tactic = () => {
         if (this.distance(this.dx, this.dy) > this.size) {
             this.move();
         } else {
