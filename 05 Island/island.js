@@ -19,8 +19,8 @@ function GlCanvas() {
     this.construct = () => {
         // 2. Configure viewport
         this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
-        this.gl.clearColor(0, 0, 0, 1);
-        this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+        this.gl.clearColor(0.95, 0.95, 0.95, 1.0);
+        this.gl.enable(gl.DEPTH_TEST);
 
         // 4. Init shader program via additional function and bind it
         this.program = initShader(this.gl, "vertex-shader", "fragment-shader");
@@ -70,6 +70,7 @@ function GlCanvas() {
         let vbo = this.gl.createBuffer();
 
         // 6. Fill VBO with positions and colors
+        // Bind the program and the vertex buffer object
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, vbo);
         this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(object.positions.concat(object.colors)), this.gl.STATIC_DRAW);
 
@@ -91,7 +92,7 @@ function GlCanvas() {
         ]);
 
         // Erstelle Translation
-        this.gl.uniform3fv(this.gl.getUniformLocation(this.program, "vTranslation"), [object.x, object.y, 0]);
+        this.gl.uniform3fv(this.gl.getUniformLocation(this.program, "vTranslation"), [object.x, object.y, object.z, 0]);
 
         return object.positions.length / 2;
     };
@@ -116,7 +117,7 @@ function GlCanvas() {
     this.activeObject = null;
 }
 
-function GlObject(x, y) {
+function GlObject(x, y, z) {
 
     this.construct = () => {
         canvas.add(this);
@@ -132,9 +133,10 @@ function GlObject(x, y) {
      */
     this.handleEvent = () => { };
 
-    this.translate = (tx, ty) => {
+    this.translate = (tx, ty, tz) => {
         this.x += tx;
         this.y += ty;
+        this.z += tz;
         return this;
     };
 
@@ -147,20 +149,14 @@ function GlObject(x, y) {
         this.orientation = degreeToRadians(degree);
     };
 
-    /**
-     * Ist ein Objekt noch im Canvas?
-     */
-    this.inCanvas = (x, y) => {
-        return x + this.radius <= 1 && y + this.radius <= 1 && x - this.radius > -1 && y - this.radius > -1;
-    };
-
-    this.distance = (x, y) => {
-        return Math.sqrt(Math.pow(x - this.x, 2) + Math.pow(y - this.y, 2));
+    this.distance = (x, y, z) => {
+        return Math.sqrt(Math.pow(x - this.x, 2) + Math.pow(y - this.y, 2) + Math.pow(z - this.z, 2));
     };
 
     this.x = 0;
     this.y = 0;
-    this.translate(x, y);
+    this.z = 0;
+    this.translate(x, y, z);
     this.orientation = 0;
     this.positions = [];
     this.colors = [];
