@@ -19,6 +19,12 @@ let viewMatrixLoc,
 let projectionMatrixLoc,
 	projectionMatrix;
 
+let eye = vec3.fromValues(0.0, 0.0, 2.0);
+let target = vec3.fromValues(0.0, 0.0, 0.0);
+let up = vec3.fromValues(0.0, 1.0, 0.0);
+let mousePosX=0;
+let mousePosY=0;
+
 function degToRad (deg) {
 	return deg * Math.PI / 180;
 }
@@ -162,6 +168,24 @@ class Cube {
 	}
 }
 
+class Surface extends Cube{
+	constructor (from = {x: -5, y: -0.5, z: -5}, to = {x: 5, y: -0.5, z: 5}, sideColors = {front: [1, 1, 0, 1], right: [1, 1, 0, 1], back: [1, 1, 0, 1], left: [1, 1, 0, 1], bottom: [1, 1, 0, 1], top: [1, 1, 0, 1]}) {
+		super();
+		this.from = from;
+		this.to = to;
+		this.sideColors = sideColors;
+		this.mesh = [];
+		this.colors = [];
+		this.orientation = {x: 0, y: 0, z: 0};
+		this.position = {x: 0, y: 0, z: 0};
+		this.verticesVBO = gl.createBuffer();
+		this.modelMatrix = this.SetModelMatrix(this.position, this.orientation);
+
+		this.MakeModel();
+		this.InitBuffer();
+	}
+}
+
 /**
  * Initializes the program, models and shaders
  */
@@ -177,7 +201,8 @@ function init() {
 	gl.enable(gl.DEPTH_TEST);
 
 	// 3. Specify vertices
-	objects.push(new Cube());		
+	objects.push(new Cube());	
+	objects.push(new Surface());	
 
 	// 4. Init shader program via additional function and bind it
 	program = initShaders(gl, "vertex-shader", "fragment-shader");
@@ -189,9 +214,9 @@ function init() {
 	modelMatrixLoc = gl.getUniformLocation(program, "modelMatrix");
 
     // Set view matrix
-	let eye = vec3.fromValues(0.0, 0.0, 2.0);
-	let target = vec3.fromValues(0.0, 0.0, 0.0);
-	let up = vec3.fromValues(0.0, 1.0, 0.0);
+	eye = vec3.fromValues(0.0, 0.0, 2.0);
+	target = vec3.fromValues(0.0, 0.0, 0.0);
+	up = vec3.fromValues(0.0, 1.0, 0.0);
 
 	viewMatrix = mat4.create();
 	mat4.lookAt(viewMatrix, eye, target, up);
@@ -212,6 +237,78 @@ function init() {
 	// 8. Render
 	render();
 };
+
+document.addEventListener("keydown", keyDownHandler)
+document.addEventListener("mousemove", mouseMoveHandler)
+
+function mouseMoveHandler(e){
+	let deltaX = e.clientX - mousePosX;
+	let deltaY =  e.clientY - mousePosY;
+
+	mousePosX = e.clientX;
+	mousePosY = e.clientY;
+
+	vec3.rotateY(target, target, eye, -0.01*deltaX);
+
+	viewMatrix = mat4.create();
+	mat4.lookAt(viewMatrix, eye, target, up);
+
+	// 7 Save uniform location and save the view matrix into it
+	viewMatrixLoc = gl.getUniformLocation(program, "viewMatrix");
+	gl.uniformMatrix4fv(viewMatrixLoc, false, viewMatrix);
+}
+
+
+function keyDownHandler(e){
+	speed = 0.2;
+	if(e.key == "w"){
+		move(0);	
+	}
+	else if (e.key == "a"){
+		//let subVector = vec3.fromValues(0.0, 0.0, 0.0);
+		move("links");
+	}
+	else if (e.key == "s"){
+		move("unten")
+	}
+	else if (e.key == "d"){
+		move("rechts")
+	}
+
+	viewMatrix = mat4.create();
+	mat4.lookAt(viewMatrix, eye, target, up);
+
+	// 7 Save uniform location and save the view matrix into it
+	viewMatrixLoc = gl.getUniformLocation(program, "viewMatrix");
+	gl.uniformMatrix4fv(viewMatrixLoc, false, viewMatrix);
+}
+
+function move(richtung){
+	let subVector = vec3.fromValues(0.0, 0.0, 0.0);
+	vec3.sub(subVector,eye, target);
+
+	let pfad = vec3.fromValues(0.0, 0.0,0.0);
+	pfad[0] = pfad[0] - subVector[0] * speed; 
+	pfad[1] = pfad[1] -subVector[1] * speed; 
+	pfad[2] = pfad[2] - subVector[2] * speed; 
+	if(richtung == "links"){
+		let temp = pfad[0];
+		pfad[0] = pfad[2];
+		pfad[2] = -temp;
+	}
+	else if(richtung == "rechts"){
+		let temp = pfad[0];
+		pfad[0] = -pfad[2];
+		pfad[2] = temp;
+	}
+	else if(richtung == "unten"){
+		pfad[0] = -pfad[0];
+		pfad[2] = -pfad[2];
+	}
+	vec3.add(eye, eye, pfad);
+	vec3.add(target, target, pfad);
+}
+
 
 function render()
 {

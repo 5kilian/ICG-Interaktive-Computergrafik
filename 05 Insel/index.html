@@ -2,8 +2,8 @@
 <html>
 	<head>
 		<meta charset="utf-8"/>
-		<title>Island</title>
-
+		<title>Zettel 6 - Aufgabe 1</title>
+		
 		<script id="vertex-shader" type="x-shader/x-vertex">
 			attribute vec4 vPosition;
 			attribute vec4 vColor;
@@ -13,8 +13,8 @@
 			uniform mat4 projectionMatrix;
 
 			varying vec4 fColor;
-
-			void main() {
+			void main()
+			{
 				fColor = vColor;
 				gl_Position = projectionMatrix * viewMatrix * modelMatrix * vPosition;
 			}
@@ -24,20 +24,25 @@
 			
 			varying vec4 fColor;
 			
-			void main() {
+			void main()
+			{					
 				gl_FragColor = fColor;
 			}
 		</script>
 
-		<script type="text/javascript" src="common/initShaders.js"></script>
-		<script type="text/javascript" src="common/gl-matrix.js"></script>
+		<script type="text/javascript" src="common/initShaders.js">
+		</script>
+		<script type="text/javascript" src="common/gl-matrix.js">
+		</script>
 	</head>
-	<body onload="init()">
+	<body>
 
-		<canvas id="gl-canvas" width="512" height="512">
+		<canvas id="gl-canvas" width="1024" height="512">
 			If you see this, your browser doesn't support WebGL.
 		</canvas>
 
-		<script type="text/javascript" src="island.js"></script>
+		<script type="text/javascript" src="cube.js">
+		</script>
+		
 	</body>
 </html>
