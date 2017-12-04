@@ -19,7 +19,7 @@ let viewMatrixLoc,
 let projectionMatrixLoc,
 	projectionMatrix;
 
-let eye = vec3.fromValues(0.0, 0.0, 2.0);
+let eye = vec3.fromValues(0.0, 2, 2.0);
 let target = vec3.fromValues(0.0, 0.0, 0.0);
 let up = vec3.fromValues(0.0, 1.0, 0.0);
 let mousePosX=0;
@@ -168,8 +168,10 @@ class Cube {
 	}
 }
 
+
+
 class Surface extends Cube{
-	constructor (from = {x: -5, y: -0.5, z: -5}, to = {x: 5, y: -0.5, z: 5}, sideColors = {front: [1, 1, 0, 1], right: [1, 1, 0, 1], back: [1, 1, 0, 1], left: [1, 1, 0, 1], bottom: [1, 1, 0, 1], top: [1, 1, 0, 1]}) {
+	constructor (from = {x: -5, y: 0, z: -5}, to = {x: 5, y: 0, z: 5}, sideColors = {front: [1, 1, 0, 1], right: [1, 1, 0, 1], back: [1, 1, 0, 1], left: [1, 1, 0, 1], bottom: [1, 1, 0, 1], top: [1, 1, 0, 1]}) {
 		super();
 		this.from = from;
 		this.to = to;
@@ -183,6 +185,151 @@ class Surface extends Cube{
 
 		this.MakeModel();
 		this.InitBuffer();
+	}
+}
+
+
+
+class Palme{
+	constructor () {
+		this.tx=0;
+		this.ty=0;
+		this.tz=0;
+
+		this.objects =[];
+
+		let newHeight =0;
+		for(let i=0; i<5;i++){
+			let palmenteil = new Palmenteil();
+			palmenteil.translate(0,newHeight,0);
+			newHeight += palmenteil.lengthY
+			this.objects.push(palmenteil);
+		}
+
+		this.orientation = {x: 0, y: 0, z: 0};
+		this.position = {x: 0, y: 0, z: 0};
+	}
+
+	translate (tx, ty, tz){
+		for(let i=0; i<this.objects.length;i++){
+		this.objects[i].translate(tx,ty,tz);
+		}
+	}
+
+	Render () {
+		for(let i=0; i<this.objects.length; i++){
+			this.objects[i].Render();
+		}
+	}
+}
+
+
+
+class Palmenteil extends Cube{
+	constructor (sizeFactorXZ=1, sizeFactorY=1, from = {x: -0.1, y: -0.1, z: -0.1}, to = {x: 0.1, y: 0.1, z: 0.1}, sideColors = {front: [0.54, 0.45, 0.33, 1], right: [0.57, 0.42, 0.33, 1], back: [0.52, 0.47, 0.33, 1], left: [0.53, 0.49, 0.33, 1], bottom: [0.58, 0.45, 0.33, 1], top: [0.54, 0.43, 0.33, 1]}) {
+		super();
+		this.from = from;
+		this.to = to;
+
+		this.lengthY=to.y - from.y;
+
+		this.sideColors = sideColors;
+		this.mesh = [];
+		this.colors = [];
+		this.orientation = {x: 0, y: 0, z: 0};
+		this.position = {x: 0, y: 0, z: 0};
+		this.verticesVBO = gl.createBuffer();
+		this.modelMatrix = this.SetModelMatrix(this.position, this.orientation);
+
+		this.MakeModel();
+		for(let i=1;i<this.mesh.length;i+=3){
+			this.mesh[i] = this.mesh[i]*sizeFactorY;
+		}
+		for(let i=0;i<this.mesh.length;i+=3){
+			this.mesh[i] = this.mesh[i]*sizeFactorXZ;
+		}
+		for(let i=2;i<this.mesh.length;i+=3){
+			this.mesh[i] = this.mesh[i]*sizeFactorXZ;
+		}
+		this.InitBuffer();
+	}
+
+	translate (tx, ty, tz){
+		let result = {x: 0, y: 0, z: 0};
+		result.x= this.position.x + tx;
+		result.y = this.position.y + ty;
+		result.z = this.position.z + tz;
+		this.modelMatrix = this.SetModelMatrix(result,this.orientation);
+		this.UpdateBuffer();
+	}
+
+
+	/**
+	 * Makes the model, namely the mesh and the colors arrays
+	 */
+	MakeModel () {
+		let factor =1.7;
+		this.mesh = [
+			// Front
+			this.from.x, this.from.y, this.to.z,
+			this.to.x, this.from.y, this.to.z,
+			this.from.x*factor, this.to.y, this.to.z*factor,
+
+			this.to.x*factor, this.to.y, this.to.z*factor,
+			this.from.x*factor, this.to.y, this.to.z*factor,
+			this.to.x, this.from.y, this.to.z,
+
+			// Right
+			this.to.x*factor, this.to.y, this.to.z*factor,
+			this.to.x, this.from.y, this.to.z,
+			this.to.x, this.from.y, this.from.z,
+
+			this.to.x*factor, this.to.y, this.from.z*factor,
+			this.to.x*factor, this.to.y, this.to.z*factor,
+			this.to.x, this.from.y, this.from.z,
+
+			// Back
+			this.from.x, this.from.y, this.from.z,
+			this.to.x, this.from.y, this.from.z,
+			this.from.x*factor, this.to.y, this.from.z*factor,
+
+			this.to.x*factor, this.to.y, this.from.z*factor,
+			this.from.x*factor, this.to.y, this.from.z*factor,
+			this.to.x, this.from.y, this.from.z,
+
+			// Left
+			this.from.x*factor, this.to.y, this.to.z*factor,
+			this.from.x, this.from.y, this.to.z,
+			this.from.x, this.from.y, this.from.z,
+
+			this.from.x*factor, this.to.y, this.from.z*factor,
+			this.from.x*factor, this.to.y, this.to.z*factor,
+			this.from.x, this.from.y, this.from.z,
+
+			// Bottom
+			this.from.x, this.from.y, this.to.z,
+			this.from.x, this.from.y, this.from.z,
+			this.to.x, this.from.y, this.to.z,
+
+			this.to.x, this.from.y, this.from.z,
+			this.from.x, this.from.y, this.from.z,
+			this.to.x, this.from.y, this.to.z,
+
+			// Top
+			this.from.x*factor, this.to.y, this.to.z*factor,
+			this.from.x*factor, this.to.y, this.from.z*factor,
+			this.to.x*factor, this.to.y, this.to.z*factor,
+
+			this.to.x*factor, this.to.y, this.from.z*factor,
+			this.from.x*factor, this.to.y, this.from.z*factor,
+			this.to.x*factor, this.to.y, this.to.z*factor
+		]
+
+		for (let i = 0; Math.floor(i/6) < 6; i++) {
+
+			this.colors = this.colors.concat(Object.values(this.sideColors)[Math.floor(i/6)]);
+
+		}
 	}
 }
 
@@ -201,8 +348,8 @@ function init() {
 	gl.enable(gl.DEPTH_TEST);
 
 	// 3. Specify vertices
-	objects.push(new Cube());	
-	objects.push(new Surface());	
+	objects.push(new Surface());
+	objects.push(new Palme());	
 
 	// 4. Init shader program via additional function and bind it
 	program = initShaders(gl, "vertex-shader", "fragment-shader");
@@ -214,8 +361,8 @@ function init() {
 	modelMatrixLoc = gl.getUniformLocation(program, "modelMatrix");
 
     // Set view matrix
-	eye = vec3.fromValues(0.0, 0.0, 2.0);
-	target = vec3.fromValues(0.0, 0.0, 0.0);
+	eye = vec3.fromValues(0.0, 0.5, 2.0);
+	target = vec3.fromValues(0.0, 0.5, 0.0);
 	up = vec3.fromValues(0.0, 1.0, 0.0);
 
 	viewMatrix = mat4.create();
@@ -265,7 +412,6 @@ function keyDownHandler(e){
 		move(0);	
 	}
 	else if (e.key == "a"){
-		//let subVector = vec3.fromValues(0.0, 0.0, 0.0);
 		move("links");
 	}
 	else if (e.key == "s"){
