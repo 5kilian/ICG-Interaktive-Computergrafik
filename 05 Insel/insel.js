@@ -35,7 +35,7 @@ function GlCanvas() {
         new Cube(2, 0, 4).scale(0.5);
         new Cube(-2, 0, 4).scale(0.5);
         new Cube(-1, 0, 2).scale(0.5);
-        new Cube(0, 0, 8).scale(0.5);
+        new Cube(0, 0, 6).scale(0.5);
 
         this.construct();
     };
@@ -341,6 +341,30 @@ function Surface(x, y, z) {
     this.construct();
 }
 
+
+function Palmenblatt(x, y, z) {
+    
+        GlObject.call(this, x, y, z);
+    
+        this.scale = (size) => {
+            this.positions = [
+                -0.05, 0, 0,
+                -0.15, -0.05, 0.2,
+                -0.05, 0, 0.6,
+                0.05, 0, 0.6,
+                0.15, -0.05, 0.2,
+                0.05, 0, 0,
+            ];
+            this.colors = [];
+            for (let i=0; i<this.positions.length/3; i++) this.colors.push(0, 0.4 + Math.random()*0.6, 0, 1);
+        };
+    
+        this.scale(5);
+        this.glMode = canvas.gl.TRIANGLE_FAN;
+        this.construct();
+    }
+
+
 function Palm(x, y, z) {
 
     GlObject.call(this, x, y, z);
@@ -403,6 +427,28 @@ function Palm(x, y, z) {
             palmPart.translate(0, height, 0);
             height += palmPart.lengthY;
             this.objects.push(palmPart);
+        }
+
+        for(let i=0;i<4;i++){
+            let palmblatt = new Palmenblatt(this.x, height, this.z);
+            let rotation = 20;
+            palmblatt.rotate(Y,i*90);
+            if(i==0){
+                palmblatt.rotate(X,rotation);
+            }
+            else if(i==1){
+                palmblatt.rotate(Z,-rotation);
+            }
+            else if(i==2){
+                palmblatt.rotate(X,-rotation);
+            }
+            else if(i==3){
+                palmblatt.rotate(Z,rotation);
+            }
+            palmblatt.translate(0,0.3,0);
+            this.objects.push(palmblatt);
+
+            
         }
     };
 
