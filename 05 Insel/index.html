@@ -2,21 +2,25 @@
 <html>
 	<head>
 		<meta charset="utf-8"/>
-		<title>Zettel 6 - Aufgabe 1</title>
-		
+		<title>05 Insel</title>
+
 		<script id="vertex-shader" type="x-shader/x-vertex">
 			attribute vec4 vPosition;
 			attribute vec4 vColor;
-			
-			uniform mat4 modelMatrix;
-			uniform mat4 viewMatrix;
-			uniform mat4 projectionMatrix;
+
+			uniform mat4 mView;
+			uniform mat4 mTranslation;
+			uniform mat4 mProjection;
+
+			uniform mat4 mRotationX;
+			uniform mat4 mRotationY;
+			uniform mat4 mRotationZ;
 
 			varying vec4 fColor;
-			void main()
-			{
+
+			void main() {
 				fColor = vColor;
-				gl_Position = projectionMatrix * viewMatrix * modelMatrix * vPosition;
+				gl_Position = mProjection * mView * mTranslation * mRotationX * mRotationY * mRotationZ * vPosition;
 			}
 		</script>
 		<script id="fragment-shader" type="x-shader/x-fragment">
@@ -24,25 +28,34 @@
 			
 			varying vec4 fColor;
 			
-			void main()
-			{					
+			void main() {
 				gl_FragColor = fColor;
 			}
 		</script>
 
-		<script type="text/javascript" src="common/initShaders.js">
-		</script>
-		<script type="text/javascript" src="common/gl-matrix.js">
-		</script>
-	</head>
-	<body>
+		<script type="text/javascript" src="common/initShaders.js"></script>
+		<script type="text/javascript" src="common/gl-matrix.js"></script>
+		<script type="text/javascript" src="common/constants.js"></script>
 
-		<canvas id="gl-canvas" width="1024" height="512">
+		<style>
+			body {
+				max-width: 1000px;
+				margin: auto;
+			}
+			#gl-canvas {
+				border: 1px solid #00000066;
+				margin: auto;
+				display: block
+			}
+		</style>
+	</head>
+	<body onload="init()">
+		<h1>Insel</h1>
+
+		<canvas id="gl-canvas" width="512" height="512">
 			If you see this, your browser doesn't support WebGL.
 		</canvas>
 
-		<script type="text/javascript" src="cube.js">
-		</script>
-		
+		<script type="text/javascript" src="insel.js"></script>
 	</body>
 </html>

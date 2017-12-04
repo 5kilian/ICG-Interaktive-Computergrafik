@@ -202,7 +202,7 @@ class Palme{
 		for(let i=0; i<5;i++){
 			let palmenteil = new Palmenteil();
 			palmenteil.translate(0,newHeight,0);
-			newHeight += palmenteil.lengthY
+			newHeight += palmenteil.lengthY;
 			this.objects.push(palmenteil);
 		}
 
@@ -352,7 +352,7 @@ function init() {
 	objects.push(new Palme());	
 
 	// 4. Init shader program via additional function and bind it
-	program = initShaders(gl, "vertex-shader", "fragment-shader");
+	program = initShader(gl, "vertex-shader", "fragment-shader");
 	gl.useProgram(program);
 
 	// 7 Save attribute location to address them
