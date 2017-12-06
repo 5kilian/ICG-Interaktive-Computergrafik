@@ -71,10 +71,10 @@
 		<h1>Insel</h1>
 
 		<label for="terrain">Terrain</label>
-		<input id="terrain" class="slider" type="range" min="0" max="100" value="5"/>
+		<input id="terrain" class="slider" type="range" min="0" max="20" value="0" oninput="increaseZIndex(this.value)" onchange="increaseZIndex(this.value)"/>
 		<input id="play" type="button" onclick="rpl()" value="play"/>
 
-		<canvas id="gl-canvas" width="512" height="512">
+		<canvas id="gl-canvas" width="1024" height="1024">
 			If you see this, your browser doesn't support WebGL.
 		</canvas>
 

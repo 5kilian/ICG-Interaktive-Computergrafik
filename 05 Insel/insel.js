@@ -27,14 +27,16 @@ function GlCanvas() {
         this.activeCamera = worldCam;
         this.activeObject = playCam;
 
-        new Surface(0, -0.50005, 0);
-        new Palm(0, -0.2, 4);
+        this.terrain = new Surface(0, -0.50005, 0);
+        this.water = new Water(0, 0, 0);
+        this.palm = new Palm(0, -0.2, 0);
 
         new Cube(0, 0, -2).scale(0.5);
         new Cube(1, 0, 2).scale(0.5);
         new Cube(2, 0, 4).scale(0.5);
         new Cube(-2, 0, 4).scale(0.5);
         new Cube(-1, 0, 2).scale(0.5);
+
         new Cube(0, 0, 6).scale(0.5);
 
         this.construct();
@@ -131,6 +133,9 @@ function GlCanvas() {
     this.objects = [];
     this.activeObject = null;
     this.activeCamera = null;
+    this.terrain = null;
+    this.water = null;
+    this.palm = null;
 }
 
 function GlObject(x, y, z) {
@@ -159,11 +164,15 @@ function GlObject(x, y, z) {
      */
     this.scale = (size) => { };
 
-    this.translate = (tx, ty, tz) => {
-        this.x += tx;
-        this.y += ty;
-        this.z += tz;
+    this.setPosition = (x, y, z) => {
+        this.x = x;
+        this.y = y;
+        this.z = z;
         return this;
+    };
+
+    this.translate = this._translate = (tx, ty, tz) => {
+        return this.setPosition(this.x + tx, this.y + ty, this.z + tz);
     };
 
     this.rotate = (axis, degree) => {
@@ -322,13 +331,48 @@ function Cube(x, y, z) {
     this.construct();
 }
 
+function Water(x, y, z) {
+
+    GlObject.call(this, x, y, z);
+
+    this.scale = (width, height) => {
+        this.width = width;
+        this.height = height;
+        this.positions = [];
+        for (let i=0; i<this.segments; i++) {
+            for (let j=0; j<this.segments; j++) {
+                let iws = i*width/this.segments, jhs = j*height/this.segments;
+                let iiws = (i+1)*width/this.segments, jjhs = (j+1)*height/this.segments;
+                this.positions.push(
+                    iws, 0, jhs,
+                    iws, 0, jjhs,
+                    iiws, 0, jjhs,
+                    iws, 0, jhs,
+                    iiws, 0, jjhs,
+                    iiws, 0, jhs
+                );
+            }
+        }
+
+        this.colors = [];
+        for (let i=0; i<this.positions.length/3; i++) this.colors.push(0, 0, 0.9, 1);
+
+        return this;
+    };
+
+    this.segments = 1;
+    this.scale(10, 10);
+    this.translate(-this.width/2, 0, -this.height/2);
+    this.construct();
+}
+
 function Surface(x, y, z) {
 
     GlObject.call(this, x, y, z);
 
     this.construct = () => {
         this._construct();
-        this.initTerrain(5, 0.3).scale(10, 10, 1);
+        this.initTerrain(5, 0.3).scale(10, 10, 0);
     };
 
     this.initTerrain = (detail, smoothness) => {
@@ -379,19 +423,49 @@ function Surface(x, y, z) {
 
     let average = (arr) => arr.reduce((sum, value) => sum + value, 0) / arr.length;
 
-    this.scale = (width, height) => {
+    this.zTerrain = (index) => {
+        let terrain = [];
+
+        for (let i=0; i<=this.segments+1; i++) {
+            terrain[i] = [];
+            for (let j=0; j<=this.segments+1; j++) {
+                terrain[i][j] = 0;
+            }
+        }
+
+        for (let i=0; index > 0 && i<Math.floor(this.segments/2); i++) {
+            let c = Math.ceil(index) / 10;
+            for (let j=0; j<=i*2-1; j++) {
+                terrain[Math.ceil(this.segments/2) - i][Math.ceil(this.segments/2) - i + j] += c;
+                if (j>0) terrain[Math.ceil(this.segments/2) - i + j][Math.ceil(this.segments/2) - i] += c;
+                if (i>0) terrain[Math.ceil(this.segments/2) + i - j][Math.ceil(this.segments/2) + i] += c;
+                if (j>0) terrain[Math.ceil(this.segments/2) + i][Math.ceil(this.segments/2) + i - j] += c;
+            }
+            terrain[Math.ceil(this.segments/2) - i][Math.ceil(this.segments/2) + i] += c;
+            if (i>0) terrain[Math.ceil(this.segments/2) + i][Math.ceil(this.segments/2) - i] += c;
+            index -= 0.5;
+        }
+
+        return terrain;
+    };
+
+    this.scale = (width, height, z) => {
+        this.width = width;
+        this.height = height;
+        this.zIndex = z;
+        let zTerrain = this.zTerrain(z);
         this.positions = [];
         for (let i=0; i<this.segments; i++) {
             for (let j=0; j<this.segments; j++) {
                 let iws = i*width/this.segments, jhs = j*height/this.segments;
                 let iiws = (i+1)*width/this.segments, jjhs = (j+1)*height/this.segments;
                 this.positions.push(
-                    iws, this.terrain[i][j], jhs,
-                    iws, this.terrain[i][j+1], jjhs,
-                    iiws, this.terrain[i+1][j+1], jjhs,
-                    iws, this.terrain[i][j], jhs,
-                    iiws, this.terrain[i+1][j+1], jjhs,
-                    iiws, this.terrain[i+1][j], jhs);
+                    iws, zTerrain[i][j] + this.terrain[i][j], jhs,
+                    iws, zTerrain[i][j+1] + this.terrain[i][j+1], jjhs,
+                    iiws, zTerrain[i+1][j+1] + this.terrain[i+1][j+1], jjhs,
+                    iws, zTerrain[i][j] + this.terrain[i][j], jhs,
+                    iiws, zTerrain[i+1][j+1] + this.terrain[i+1][j+1], jjhs,
+                    iiws, zTerrain[i+1][j] + this.terrain[i+1][j], jhs);
             }
         }
 
@@ -402,12 +476,16 @@ function Surface(x, y, z) {
             else this.colors.push(1, 0.9, 0, 1);
         }
 
-        return this.translate(-width/2, 0, -height/2);
+        return this;
     };
 
+    this.width = 0;
+    this.height = 0;
+    this.zIndex = 0;
     this.terrain = [];
     this.segments = 0;
     this.construct();
+    this.translate(-this.width/2, 0, -this.height/2);
 }
 
 function Palm(x, y, z) {
@@ -425,12 +503,8 @@ function Palm(x, y, z) {
                 -size, -size, size, size, -size,  size, size * factor,  size,  size * factor,
                 size * factor, size, size * factor, -size * factor,  size,  size * factor, -size, -size,  size,
                 // Right
-                size * factor, size,  size * factor,
-                size, -size,  size,
-                size, -size, -size,
-                size * factor,  size, -size * factor,
-                size * factor,  size,  size * factor,
-                size, -size, -size,
+                size * factor, size,  size * factor, size, -size,  size, size, -size, -size,
+                size * factor,  size, -size * factor, size * factor,  size,  size * factor, size, -size, -size,
                 // Back
                 -size, -size, -size, size, -size, -size, size * factor,  size, -size * factor,
                 size * factor, size, -size * factor, -size * factor,  size, -size * factor, -size, -size, -size,
@@ -510,11 +584,12 @@ function Palm(x, y, z) {
             palmLeaf.translate(0,0.3,0);
             this.objects.push(palmLeaf);
         }
+        return this;
     };
 
     this.translate = (tx, ty, tz) => {
         this.objects.forEach(object => object.translate(tx, ty, tz));
-        return this
+        return this._translate(tx, ty, tz);
     };
 
     this.rotate = (axis, degree) => {
@@ -530,6 +605,14 @@ function Palm(x, y, z) {
 let canvas = new GlCanvas();
 let playCam = new Camera(0, 0, 0);
 let worldCam = new Camera(6, 5, 6).rotate(X, 45).rotate(Y, -40);
+
+function increaseZIndex(value) {
+    let diff = value - canvas.terrain.zIndex;
+    console.log(diff);
+    canvas.terrain.scale(10, 10, value);
+
+    canvas.palm.translate(0, diff/10, 0);
+}
 
 function rpl() {
     canvas.canvas.requestPointerLock = canvas.canvas.requestPointerLock
