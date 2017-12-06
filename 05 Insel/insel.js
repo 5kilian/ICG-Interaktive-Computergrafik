@@ -24,8 +24,8 @@ function GlCanvas() {
     };
 
     this.initialize = () => {
-        this.activeCamera = new Camera(0, 0, 0);
-        this.activeObject = this.activeCamera;
+        this.activeCamera = worldCam;
+        this.activeObject = playCam;
 
         new Surface(0, -0.50005, 0);
         new Palm(0, -0.2, 4);
@@ -135,7 +135,7 @@ function GlCanvas() {
 
 function GlObject(x, y, z) {
 
-    this.construct = () => {
+    this.construct = this._construct = () => {
         canvas.add(this);
     };
 
@@ -204,6 +204,9 @@ function Camera(x, y, z) {
     GlObject.call(this, x, y, z);
 
     this.update = () => {
+        if (this.jumping ) {
+            this.ty = 0.04;
+        }
         this.translate(this.tx, this.ty, this.tz);
     };
 
@@ -222,34 +225,36 @@ function Camera(x, y, z) {
         this.tx = this.ty = this.tz = 0;
         let secondKey = this.activeKeys[this.activeKeys.length-2];
         switch (this.activeKeys[this.activeKeys.length-1]) {
-            case D:
+            case KEYCODE_D:
             case KEYCODE_RIGHT:
-
                 strafeDirection = vec3.cross(vec3.create(), this.target, UP);
                 this.tx = this.speed * strafeDirection[0];
                 this.tz = this.speed * strafeDirection[2];
                 break;
-            case W:
+            case KEYCODE_W:
             case KEYCODE_UP:
                 this.tx = this.speed * this.target[0];
                 this.tz = this.speed * this.target[2];
                 break;
-            case A:
+            case KEYCODE_A:
             case KEYCODE_LEFT:
                 strafeDirection = vec3.cross(vec3.create(), this.target, UP);
                 this.tx = -this.speed * strafeDirection[0];
                 this.tz = -this.speed * strafeDirection[2];
                 break;
-            case S:
+            case KEYCODE_S:
             case KEYCODE_DOWN:
                 this.tx = -this.speed * this.target[0];
                 this.tz = -this.speed * this.target[2];
                 break;
-            case Q:
+            case KEYCODE_Q:
                 this.ty = -this.speed * UP[1];
                 break;
-            case E:
+            case KEYCODE_E:
                 this.ty = this.speed * UP[1];
+                break;
+            case KEYCODE_SPACE:
+                if (!this.jumping) this.jumping = true;
                 break;
         }
     };
@@ -266,9 +271,7 @@ function Camera(x, y, z) {
     this.tx = 0;
     this.ty = 0;
     this.tz = 0;
-    this.mouseInitialized = false;
-    this.clientX = 0;
-    this.clientY = 0;
+    this.jumping = false;
     this.construct();
 }
 
@@ -323,47 +326,89 @@ function Surface(x, y, z) {
 
     GlObject.call(this, x, y, z);
 
-    this.scale = (size) => {
-        this.positions = [
-            0, 0, 0,
-            -size, 0, -size,
-            size, 0, -size,
-            size, 0, size,
-            -size, 0, size,
-            -size, 0, -size,
-        ];
-        this.colors = [];
-        for (let i=0; i<this.positions.length/3; i++) this.colors.push(1, 1, 0, 1);
+    this.construct = () => {
+        this._construct();
+        this.initTerrain(5, 0.3).scale(10, 10, 1);
     };
 
-    this.scale(5);
-    this.glMode = canvas.gl.TRIANGLE_FAN;
+    this.initTerrain = (detail, smoothness) => {
+        this.segments = Math.pow(2, detail) + 1;
+        this.terrain = [];
+        for (let i=0; i<=this.segments; i++) {
+            this.terrain[i] = [];
+            for (let j=0; j<=this.segments; j++) {
+                this.terrain[i][j] = 0;
+            }
+        }
+        divide(this.segments-1, smoothness);
+        return this;
+    };
+
+    let divide = (size, smoothness) => {
+        if (size < 2) return this;
+        let half = size/2;
+
+        for (let x=half; x<this.segments-1; x+=size) {
+            for (let y=half; y<this.segments-1; y+=size) {
+                this.terrain[x][y] = square(x, y, half) + Math.random() * 2 * smoothness - smoothness;
+            }
+        }
+
+        for (let x=0; x<this.segments-1; x+=half) {
+            for (let y=(x+half) % size; y<this.segments-1; y+=size) {
+                this.terrain[x][y] = diamond(x, y, half) + Math.random() * 2 * smoothness - smoothness;
+            }
+        }
+
+        divide(half, smoothness/2);
+    };
+
+    let square = (x, y, size) => average([
+        this.terrain[x-size][y-size],
+        this.terrain[x+size][y-size],
+        this.terrain[x+size][y+size],
+        this.terrain[x-size][y+size]
+    ]);
+
+    let diamond = (x, y, size) => average([
+        this.terrain[x][(y+size) % (2*size)],
+        this.terrain[(x+size) % (2*size)][y],
+        this.terrain[x][(y+size) % (2*size)],
+        this.terrain[(x+size) % (2*size)][y]
+    ]);
+
+    let average = (arr) => arr.reduce((sum, value) => sum + value, 0) / arr.length;
+
+    this.scale = (width, height) => {
+        this.positions = [];
+        for (let i=0; i<this.segments; i++) {
+            for (let j=0; j<this.segments; j++) {
+                let iws = i*width/this.segments, jhs = j*height/this.segments;
+                let iiws = (i+1)*width/this.segments, jjhs = (j+1)*height/this.segments;
+                this.positions.push(
+                    iws, this.terrain[i][j], jhs,
+                    iws, this.terrain[i][j+1], jjhs,
+                    iiws, this.terrain[i+1][j+1], jjhs,
+                    iws, this.terrain[i][j], jhs,
+                    iiws, this.terrain[i+1][j+1], jjhs,
+                    iiws, this.terrain[i+1][j], jhs);
+            }
+        }
+
+        this.colors = [];
+        for (let i=0; i<this.positions.length/3; i++) {
+            if (i%6<3)
+            this.colors.push(1, 1, 0, 1);
+            else this.colors.push(1, 0.9, 0, 1);
+        }
+
+        return this.translate(-width/2, 0, -height/2);
+    };
+
+    this.terrain = [];
+    this.segments = 0;
     this.construct();
 }
-
-
-function Palmenblatt(x, y, z) {
-    
-        GlObject.call(this, x, y, z);
-    
-        this.scale = (size) => {
-            this.positions = [
-                -0.05, 0, 0,
-                -0.15, -0.05, 0.2,
-                -0.05, 0, 0.6,
-                0.05, 0, 0.6,
-                0.15, -0.05, 0.2,
-                0.05, 0, 0,
-            ];
-            this.colors = [];
-            for (let i=0; i<this.positions.length/3; i++) this.colors.push(0, 0.4 + Math.random()*0.6, 0, 1);
-        };
-    
-        this.scale(5);
-        this.glMode = canvas.gl.TRIANGLE_FAN;
-        this.construct();
-    }
-
 
 function Palm(x, y, z) {
 
@@ -419,6 +464,29 @@ function Palm(x, y, z) {
         this.construct();
     }
 
+    // Inner class
+    function PalmLeaf(x, y, z) {
+
+        GlObject.call(this, x, y, z);
+
+        this.scale = (size) => {
+            this.positions = [
+                -0.05, 0, 0,
+                -0.15, -0.05, 0.2,
+                -0.05, 0, 0.6,
+                0.05, 0, 0.6,
+                0.15, -0.05, 0.2,
+                0.05, 0, 0,
+            ];
+            this.colors = [];
+            for (let i=0; i<this.positions.length/3; i++) this.colors.push(0, 0.4 + Math.random()*0.6, 0, 1);
+        };
+
+        this.scale(5);
+        this.glMode = canvas.gl.TRIANGLE_FAN;
+        this.construct();
+    }
+
     this.scale = (size) => {
         let height = this.y;
         for (let i=0; i<5; i++) {
@@ -429,26 +497,18 @@ function Palm(x, y, z) {
             this.objects.push(palmPart);
         }
 
-        for(let i=0;i<4;i++){
-            let palmblatt = new Palmenblatt(this.x, height, this.z);
+        for (let i=0; i<4; i++) {
+            let palmLeaf = new PalmLeaf(this.x, height, this.z);
             let rotation = 20;
-            palmblatt.rotate(Y,i*90);
-            if(i==0){
-                palmblatt.rotate(X,rotation);
+            palmLeaf.rotate(Y,i*90);
+            switch (i) {
+                case 0: palmLeaf.rotate(X,rotation); break;
+                case 1: palmLeaf.rotate(Z,-rotation); break;
+                case 2: palmLeaf.rotate(X,-rotation); break;
+                case 3: palmLeaf.rotate(Z,rotation); break;
             }
-            else if(i==1){
-                palmblatt.rotate(Z,-rotation);
-            }
-            else if(i==2){
-                palmblatt.rotate(X,-rotation);
-            }
-            else if(i==3){
-                palmblatt.rotate(Z,rotation);
-            }
-            palmblatt.translate(0,0.3,0);
-            this.objects.push(palmblatt);
-
-            
+            palmLeaf.translate(0,0.3,0);
+            this.objects.push(palmLeaf);
         }
     };
 
@@ -468,8 +528,10 @@ function Palm(x, y, z) {
 }
 
 let canvas = new GlCanvas();
+let playCam = new Camera(0, 0, 0);
+let worldCam = new Camera(6, 5, 6).rotate(X, 45).rotate(Y, -40);
 
-function requestPointerLock() {
+function rpl() {
     canvas.canvas.requestPointerLock = canvas.canvas.requestPointerLock
         || canvas.canvas.mozRequestPointerLock
         || canvas.canvas.webkitRequestPointerLock;
@@ -486,9 +548,11 @@ function changeCallback() {
         case document.pointerLockElement:
         case document.mozPointerLockElement:
         case document.webkitPointerLockElement:
+            canvas.activeCamera = playCam;
             document.addEventListener('mousemove', canvas.activeObject.handleMouseMove);
             break;
         default:
+            canvas.activeCamera = worldCam;
             document.removeEventListener('mousemove', canvas.activeObject.handleMouseMove);
     }
 }
@@ -496,7 +560,6 @@ function changeCallback() {
 function init() {
     canvas.initialize();
 
-    document.addEventListener('click', requestPointerLock);
     document.addEventListener('pointerlockchange', changeCallback, false);
     document.addEventListener('mozpointerlockchange', changeCallback, false);
     document.addEventListener('webkitpointerlockchange', changeCallback, false);

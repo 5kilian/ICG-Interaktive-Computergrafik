@@ -3,15 +3,16 @@ const KEYCODE_LEFT = 37;
 const KEYCODE_RIGHT = 39;
 const KEYCODE_UP = 38;
 const KEYCODE_DOWN = 40;
-const A = 65;
-const D = 68;
-const E = 69;
-const Q = 81;
-const S = 83;
-const W = 87;
-const X = 88;
-const Y = 89;
-const Z = 90;
+const KEYCODE_SPACE = 32;
+const KEYCODE_A = 65;
+const KEYCODE_D = 68;
+const KEYCODE_E = 69;
+const KEYCODE_Q = 81;
+const KEYCODE_S = 83;
+const KEYCODE_W = 87;
+const KEYCODE_X = X = 88;
+const KEYCODE_Y = Y = 89;
+const KEYCODE_Z = Z = 90;
 
 // Math
 const degreeToRadians = degree => degree / 180 * Math.PI;
@@ -20,7 +21,7 @@ const twoPI = 2*Math.PI;
 
 // Makros
 const f32a = arr => new Float32Array(arr);
-const EYE = vec3.fromValues(0, 0, 1);
+const EYE = vec3.fromValues(0, 0, -1);
 const UP = vec3.fromValues(0, 1, 0);
 
 const translate = (x, y, z) => mat4.fromTranslation(mat4.create(), vec3.fromValues(x, y, z));

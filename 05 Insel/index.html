@@ -47,10 +47,32 @@
 				margin: auto;
 				display: block
 			}
+			.slider {
+				background: transparent;
+				display: block;
+				height: 1.2rem;
+				width: 12em;
+			}
+			.slider::-moz-range-thumb {
+				background: #5755d9;
+				border: 0;
+				height: 0.6rem;
+				width: 0.6rem;
+			}
+			.slider::-moz-range-track {
+				background: #f0f1f4;
+				border-radius: 0.25rem;
+				height: 0.25rem;
+				width: 100%;
+			}
 		</style>
 	</head>
 	<body onload="init()">
 		<h1>Insel</h1>
+
+		<label for="terrain">Terrain</label>
+		<input id="terrain" class="slider" type="range" min="0" max="100" value="5"/>
+		<input id="play" type="button" onclick="rpl()" value="play"/>
 
 		<canvas id="gl-canvas" width="512" height="512">
 			If you see this, your browser doesn't support WebGL.
