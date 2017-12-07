@@ -27,8 +27,8 @@ function GlCanvas() {
         this.activeCamera = worldCam;
         this.activeObject = playCam;
 
-        this.terrain = new Surface(0, -0.50005, 0);
-        this.water = new Water(0, 0, 0);
+        // this.terrain = new Surface(0, -0.50005, 0);
+        // this.water = new Water(0, 0, 0);
         this.palm = new Palm(0, -0.2, 0);
 
         new Cube(0, 0, -2).scale(0.5);
@@ -91,9 +91,17 @@ function GlCanvas() {
         this.gl.vertexAttribPointer(vColor, 4, this.gl.FLOAT, false, 0, object.positions.length * 4);
 
         // Rotationsmatrix
-        this.gl.uniformMatrix4fv(this.getUniform('mRotationX'), false, mRotationX(object.orientation.x));
-        this.gl.uniformMatrix4fv(this.getUniform('mRotationY'), false, mRotationY(object.orientation.y));
-        this.gl.uniformMatrix4fv(this.getUniform('mRotationZ'), false, mRotationZ(object.orientation.z));
+        object.rotationOrder.forEach((order, index) => {
+            let mRotation;
+            switch (order) {
+                case X: mRotation = mRotationX(object.orientation.x); break;
+                case Y: mRotation = mRotationY(object.orientation.y); break;
+                case Z: mRotation = mRotationZ(object.orientation.z); break;
+            }
+
+            this.gl.uniformMatrix4fv(this.getUniform('mRotation' + index), false, mRotation);
+        });
+
 
         // 7.3 Save uniform location and save the model matrix into it
         // Transformationsmatrix
@@ -206,6 +214,7 @@ function GlObject(x, y, z) {
     this.glMode = canvas.gl.TRIANGLES;
     this.activeKeys = [];
     this.keyChanged = false;
+    this.rotationOrder = [X, Y, Z];
 }
 
 function Camera(x, y, z) {

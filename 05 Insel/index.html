@@ -12,15 +12,15 @@
 			uniform mat4 mTranslation;
 			uniform mat4 mProjection;
 
-			uniform mat4 mRotationX;
-			uniform mat4 mRotationY;
-			uniform mat4 mRotationZ;
+			uniform mat4 mRotation0;
+			uniform mat4 mRotation1;
+			uniform mat4 mRotation2;
 
 			varying vec4 fColor;
 
 			void main() {
 				fColor = vColor;
-				gl_Position = mProjection * mView * mTranslation * mRotationX *  mRotationZ * mRotationY * vPosition;
+				gl_Position = mProjection * mView * mTranslation * mRotation0 *  mRotation1 * mRotation2 * vPosition;
 			}
 		</script>
 		<script id="fragment-shader" type="x-shader/x-fragment">
