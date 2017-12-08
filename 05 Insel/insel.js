@@ -547,28 +547,7 @@ function Palm(x, y, z) {
         this.construct();
     }
 
-    // Inner class
-    function PalmLeaf(x, y, z) {
 
-        GlObject.call(this, x, y, z);
-
-        this.scale = (size) => {
-            this.positions = [
-                -0.05, 0, 0,
-                -0.15, -0.05, 0.2,
-                -0.05, 0, 0.6,
-                0.05, 0, 0.6,
-                0.15, -0.05, 0.2,
-                0.05, 0, 0,
-            ];
-            this.colors = [];
-            for (let i=0; i<this.positions.length/3; i++) this.colors.push(0, 0.4 + Math.random()*0.6, 0, 1);
-        };
-
-        this.scale(5);
-        this.glMode = canvas.gl.TRIANGLE_FAN;
-        this.construct();
-    }
 
     this.scale = (size) => {
         let height = this.y;
@@ -581,7 +560,8 @@ function Palm(x, y, z) {
         }
 
         for (let i=0; i<4; i++) {
-            let palmLeaf = new PalmLeaf(this.x, height, this.z);
+            let palmLeaf = new PalmBigLeaf(this.x, height, this.z);
+            palmLeaf.translate(0, -0.7,0);
             let rotation = 20;
             palmLeaf.rotate(Y,i*90);
             switch (i) {
@@ -610,6 +590,94 @@ function Palm(x, y, z) {
     this.scale(1);
     this.construct();
 }
+
+
+function PalmBigLeaf(x, y, z) {
+    
+            GlObject.call(this, x, y, z);
+    
+            this.scale = (size) => {
+                this.makeModel();
+                this.colors = [];
+                for (let i=0; i<this.positions.length/3; i++) this.colors.push(0, 0.4 + Math.random()*0.6, 0, 1);
+            };
+            
+            this.makeModel = () => {
+                this.objects = [];
+
+                let factor =1.7;
+        
+                let abstandZwischenBlättern = 0.02;
+                let anzahlBlätter = 30;
+                let startRotationZ = 20;
+                let scaling = 0.8;
+        
+                let rotationX = 90;
+                let rotationX2 = -30;
+                let rotationZ = 90;
+                for(let i=0; i<anzahlBlätter; i++){
+                    let palmenblatt = new PalmSmallLeaf(0,0,0);
+                    palmenblatt.rotate(X,rotationX);
+                    palmenblatt.rotate(Z,-startRotationZ);                 
+                    palmenblatt.rotate(Z,0 - i*((90-startRotationZ)/anzahlBlätter));
+                    palmenblatt.rotate(X,i);
+
+                    palmenblatt.translate(i*abstandZwischenBlättern, 1-Math.pow(i,1.7)*0.001, 0);
+
+                    palmenblatt.scale(scaling);
+                    this.positions.push(palmenblatt.positions);
+                    this.objects.push(palmenblatt);
+        
+        
+
+                    let palmenblatt2 = new PalmSmallLeaf(0,0,0);
+                    palmenblatt2.rotate(X,rotationX);
+                    palmenblatt2.rotate(Z,startRotationZ);    
+                    palmenblatt2.rotate(Z, 180 +i*((90-startRotationZ)/anzahlBlätter));
+                    palmenblatt.rotate(X,i);
+
+                    palmenblatt2.translate(i*abstandZwischenBlättern, 1-Math.pow(i,1.7)*0.001, 0);
+
+                    palmenblatt2.scale(scaling);
+                    this.positions.push(palmenblatt2.positions);
+                    this.objects.push(palmenblatt2);
+                } 
+            };
+
+            this.translate = (tx, ty, tz) => {
+                this.objects.forEach(object => object.translate(tx, ty, tz));
+                return this._translate(tx, ty, tz);
+            };
+
+            this.scale(5);
+            this.glMode = canvas.gl.TRIANGLES;
+            this.construct();
+        }
+
+        
+
+
+function PalmSmallLeaf(x, y, z) {
+    
+            GlObject.call(this, x, y, z);
+    
+            this.scale = (size) => {
+                this.positions = [
+                    -0.01, 0, 0,
+                    0, 0.3, 0,	
+                    0.01, 0, 0
+                ];
+                this.colors = [];
+                for (let i=0; i<this.positions.length/3; i++) this.colors.push(0, 0.4 + Math.random()*0.6, 0, 1);
+            };
+    
+            this.scale(5);
+            this.glMode = canvas.gl.TRIANGLE_FAN;
+            this.construct();
+        }
+
+
+
 
 let canvas = new GlCanvas();
 let playCam = new Camera(0, 0, 0);
