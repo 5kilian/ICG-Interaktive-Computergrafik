@@ -75,7 +75,9 @@ function GlObject(x, y, z) {
     this.colors = [];
     this.glMode = canvas.gl.TRIANGLES;
     this.texture = undefined;
+    this.textureSrc = '';
     this.textureCoordinates = [];
+    this.textureLoaded = false;
     this.activeKeys = [];
     this.keyChanged = false;
     this.rotationOrder = [X, Y, Z];

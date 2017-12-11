@@ -15,7 +15,6 @@ function GlCanvas() {
         this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
         this.gl.clearColor(0.95, 0.95, 0.95, 1.0);
         this.gl.enable(this.gl.DEPTH_TEST);
-        this.gl.enable(this.gl.TEXTURE_2D);
 
         // 4. Init shader program via additional function and bind it
         this.program = initShader(this.gl, "vertex-shader", "fragment-shader");
@@ -46,20 +45,20 @@ function GlCanvas() {
     this.add = (object) => {
         this.objects.push(object);
         // 8. Load the texture picture
-        if (object.texture !== undefined) {
-            let image = new Image(), texture = this.gl.createTexture();
-            image.onload = () => { this.handleTexture(image, texture); };
-            image.src = object.texture;
+        if (object.textureSrc.length > 0) {
+            object.texture = this.gl.createTexture();
+            object.texture.image = new Image();
+            object.texture.image.src = object.textureSrc;
+            object.texture.image.addEventListener('load', () => { this.handleTexture(object.texture) });
         }
     };
 
-    this.handleTexture = (image, texture) => {
+    this.handleTexture = (texture) => {
         this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
-        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, image, true);
-        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
-        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR_MIPMAP_NEAREST);
+        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, texture.image);
         this.gl.generateMipmap(this.gl.TEXTURE_2D);
-        this.gl.bindTexture(gl.TEXTURE_2D, null);
+        this.gl.bindTexture(this.gl.TEXTURE_2D, null);
+        texture.loaded = true;
     };
 
     this.remove = (object) => {
@@ -93,13 +92,24 @@ function GlCanvas() {
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.gl.createBuffer());
 
         // 6. Fill VBO with positions and colors
-        if (object.texture !== undefined) {
+        if (object.texture !== undefined && object.texture.loaded) {
             this.gl.bufferData(this.gl.ARRAY_BUFFER, f32a(object.positions.concat(object.textureCoordinates)), this.gl.STATIC_DRAW);
 
             // 7.2 Save attribute location to address them
             let vTexture = this.getAttribute('vTexture');
             this.gl.enableVertexAttribArray(vTexture);
-            this.gl.vertexAttribPointer(vTexture, 4, this.gl.FLOAT, false, 0, object.positions.length * 4);
+            this.gl.vertexAttribPointer(vTexture, 2, this.gl.FLOAT, false, 0, object.positions.length * 4);
+
+            this.gl.activeTexture(this.gl.TEXTURE0);
+
+            this.gl.bindTexture(this.gl.TEXTURE_2D, object.texture);
+
+            this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
+            this.gl.uniform1i(this.getUniform('uSampler'), 0);
+
+            this.gl.uniform1i(this.getUniform('bUseTexture'), 1);
+
+            this.gl.disableVertexAttribArray(this.getAttribute('vColor'));
         } else {
             this.gl.bufferData(this.gl.ARRAY_BUFFER, f32a(object.positions.concat(object.colors)), this.gl.STATIC_DRAW);
 
@@ -107,6 +117,9 @@ function GlCanvas() {
             let vColor = this.getAttribute('vColor');
             this.gl.enableVertexAttribArray(vColor);
             this.gl.vertexAttribPointer(vColor, 4, this.gl.FLOAT, false, 0, object.positions.length * 4);
+            this.gl.uniform1i(this.getUniform('bUseTexture'), 0);
+
+            this.gl.disableVertexAttribArray(this.getAttribute('vTexture'));
         }
 
         // 7. Link data in VBO to shader variables

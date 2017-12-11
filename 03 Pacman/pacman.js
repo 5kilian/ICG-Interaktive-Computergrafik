@@ -323,7 +323,6 @@ function Enemy(x, y) {
     this.update = () => {
         if (pacman.distance(this.x, this.y) < pacman.radius) {
             pacman.die();
-            canvas.activeObject = this;
         } else {
             this.tactic();
         }

@@ -14,7 +14,6 @@ let worldCam = new Camera(6, 5, 6).rotate(X, 45).rotate(Y, -40);
 
 function increaseZIndex(value) {
     let diff = value - canvas.terrain.zIndex;
-    console.log(diff);
     canvas.terrain.scale(10, 10, value);
 
     canvas.palm.translate(0, diff/10, 0);

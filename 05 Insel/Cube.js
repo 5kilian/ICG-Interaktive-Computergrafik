@@ -17,23 +17,47 @@ function Cube(x, y, z) {
     this.scale = (size) => {
         this.positions = [
             // Front
-            -size, -size,  size, size, -size,  size, size,  size,  size,
-            size,  size,  size, -size,  size,  size, -size, -size,  size,
+            size,  size,  size,
+            -size, -size,  size,
+            size, -size,  size,
+            size,  size,  size,
+            -size, -size,  size,
+            -size,  size,  size,
             // Right
-            size,  size,  size, size, -size,  size, size, -size, -size,
-            size, -size, -size, size,  size, -size, size,  size,  size,
+            size,  size,  size,
+            size, -size, -size,
+            size,  size, -size,
+            size,  size,  size,
+            size, -size, -size,
+            size, -size,  size,
             // Back
-            -size, -size, -size, size, -size, -size, size,  size, -size,
-            size,  size, -size, -size,  size, -size, -size, -size, -size,
+            size,  size, -size,
+            -size, -size, -size,
+            size, -size, -size,
+            size,  size, -size,
+            -size, -size, -size,
+            -size,  size, -size,
             // Left
-            -size,  size,  size, -size, -size,  size, -size, -size, -size,
-            -size, -size, -size, -size,  size, -size, -size,  size,  size,
+            -size,  size,  size,
+            -size, -size, -size,
+            -size,  size, -size,
+            -size,  size,  size,
+            -size, -size, -size,
+            -size, -size,  size,
             // Bottom
-            -size, -size,  size, size, -size,  size, size, -size, -size,
-            size, -size, -size, -size, -size, -size, -size, -size,  size,
+            size, -size,  size,
+            -size, -size, -size,
+            size, -size, -size,
+            size, -size,  size,
+            -size, -size,  -size,
+            -size, -size, size,
             // Top
-            -size,  size,  size, size,  size,  size, size,  size, -size,
-            size,  size, -size, -size,  size, -size, -size,  size,  size
+            size,  size,  size,
+            -size,  size, -size,
+            size,  size,  -size,
+            size,  size,  size,
+            -size,  size, -size,
+            -size,  size,  size,
         ];
 
         this.colors = [
@@ -50,7 +74,14 @@ function Cube(x, y, z) {
             // Top
             0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1
         ];
+
+        this.textureCoordinates = [];
+        for (let i=0; i<(this.positions.length/3)/3; i++) {
+            if (i%2===0) this.textureCoordinates.push(0, 0, 1, 1, 0, 1);
+            else this.textureCoordinates.push(0, 0, 1, 1, 1, 0);
+        }
     };
 
+    this.textureSrc = 'assets/bathroom-texture.jpg';
     this.construct();
 }

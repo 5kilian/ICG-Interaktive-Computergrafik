@@ -102,36 +102,27 @@ function Surface(x, y, z) {
                 let iws = i*width/this.segments, jhs = j*height/this.segments;
                 let iiws = (i+1)*width/this.segments, jjhs = (j+1)*height/this.segments;
                 this.positions.push(
-                    iws, zTerrain[i][j] + this.terrain[i][j], jhs,
                     iws, zTerrain[i][j+1] + this.terrain[i][j+1], jjhs,
-                    iiws, zTerrain[i+1][j+1] + this.terrain[i+1][j+1], jjhs,
+                    iiws, zTerrain[i+1][j] + this.terrain[i+1][j], jhs,
                     iws, zTerrain[i][j] + this.terrain[i][j], jhs,
                     iiws, zTerrain[i+1][j+1] + this.terrain[i+1][j+1], jjhs,
-                    iiws, zTerrain[i+1][j] + this.terrain[i+1][j], jhs);
+                    iws, zTerrain[i][j+1] + this.terrain[i][j+1], jjhs,
+                    iiws, zTerrain[i+1][j] + this.terrain[i+1][j], jhs,
+                );
             }
         }
 
         this.colors = [];
         for (let i=0; i<this.positions.length/3; i++) {
-            if (i%6<3)
-                this.colors.push(1, 1, 0, 1);
+            if (i%6<3) this.colors.push(1, 1, 0, 1);
             else this.colors.push(1, 0.9, 0, 1);
         }
 
-        this.textureCoordinates = [
-            // front
-            0, 0, 1, 0, 1, 1, 0, 1,
-            // back
-            0, 0, 1, 0, 1, 1, 0, 1,
-            // top
-            0, 0, 1, 0, 1, 1, 0, 1,
-            // bottom
-            0, 0, 1, 0, 1, 1, 0, 1,
-            // right
-            0, 0, 1, 0, 1, 1, 0, 1,
-            // left
-            0, 0, 1, 0, 1, 1, 0, 1,
-        ];
+        this.textureCoordinates = [];
+        for (let i=0; i<(this.positions.length/3)/3; i++) {
+            if (i%2===0) this.textureCoordinates.push(0, 1, 1, 0, 0, 0);
+            else this.textureCoordinates.push(1, 1, 0, 1, 1, 0);
+        }
 
         return this;
     };
@@ -141,7 +132,7 @@ function Surface(x, y, z) {
     this.zIndex = 0;
     this.terrain = [];
     this.segments = 0;
-    this.texture = 'assets/sand.jpg';
+    this.textureSrc = 'assets/texture-sand.jpg';
     this.construct();
     this.translate(-this.width/2, 0, -this.height/2);
 }
