@@ -45,7 +45,7 @@ function GlObject(x, y, z) {
         return this.setPosition(this.x + tx, this.y + ty, this.z + tz);
     };
 
-    this.rotate = (axis, degree) => {
+    this.rotate = this._rotate = (axis, degree) => {
         switch (axis) {
             case X: this.updateOrientation(X, radiansToDegree(this.orientation.x) + degree); break;
             case Y: this.updateOrientation(Y, radiansToDegree(this.orientation.y) + degree); break;

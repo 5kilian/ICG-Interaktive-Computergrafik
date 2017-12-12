@@ -9,7 +9,7 @@
 
 
 let canvas = new GlCanvas();
-let playCam = new Camera(0, 0, 0);
+let playCam = new Camera(0, 1, 2);
 let worldCam = new Camera(6, 5, 6).rotate(X, 45).rotate(Y, -40);
 
 function increaseZIndex(value) {

@@ -53,11 +53,11 @@ function Camera(x, y, z) {
                 this.tx = -this.speed * this.target[0];
                 this.tz = -this.speed * this.target[2];
                 break;
-            case KEYCODE_Q:
-                this.ty = -this.speed * UP[1];
-                break;
-            case KEYCODE_E:
+            case KEYCODE_R:
                 this.ty = this.speed * UP[1];
+                break;
+            case KEYCODE_F:
+                this.ty = -this.speed * UP[1];
                 break;
             case KEYCODE_SPACE:
                 break;

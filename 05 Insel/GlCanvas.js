@@ -29,7 +29,7 @@ function GlCanvas() {
 
         this.terrain = new Surface(0, -0.50005, 0);
         this.water = new Water(0, 0, 0).scale(10);
-        this.palm = new Palm(0, -0.3, 0);
+        this.palm = new Palm(0, -0.35, 0).scale(6, 0.6);
 
         // new Cube(0, 0, -2).scale(0.5);
         // new Cube(1, 0, 2).scale(0.5);

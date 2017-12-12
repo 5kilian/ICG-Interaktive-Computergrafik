@@ -17,7 +17,7 @@ function Surface(x, y, z) {
         // const terrain magic values, play around for custom terrains
         // 5 => 2^5: power of two amount of segments, because of the simplicity of the diamond-square algorithm
         // 0.4 => the smoothness of the terrain, higher: greater hills, lower: smaller hills, like islands of sand
-        this.initTerrain(5, 0.35).scale(10, 10, 0);
+        this.initTerrain(5, 0.3).scale(10, 10, 0);
     };
 
     this.initTerrain = (detail, smoothness) => {
