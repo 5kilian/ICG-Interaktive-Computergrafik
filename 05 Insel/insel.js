@@ -19,6 +19,7 @@ function increaseZIndex(value) {
     canvas.palm.translate(0, diff/10, 0);
 }
 
+// rpl = request pointer lock
 function rpl() {
     canvas.canvas.requestPointerLock = canvas.canvas.requestPointerLock
         || canvas.canvas.mozRequestPointerLock
@@ -31,7 +32,7 @@ function rpl() {
     document.exitPointerLock();
 }
 
-function changeCallback() {
+function changeMode() {
     switch (canvas.canvas) {
         case document.pointerLockElement:
         case document.mozPointerLockElement:
@@ -48,9 +49,9 @@ function changeCallback() {
 function init() {
     canvas.initialize();
 
-    document.addEventListener('pointerlockchange', changeCallback, false);
-    document.addEventListener('mozpointerlockchange', changeCallback, false);
-    document.addEventListener('webkitpointerlockchange', changeCallback, false);
+    document.addEventListener('pointerlockchange', changeMode);
+    document.addEventListener('mozpointerlockchange', changeMode);
+    document.addEventListener('webkitpointerlockchange', changeMode);
 
     document.addEventListener('keydown', canvas.keyPressed);
     document.addEventListener('keyup', canvas.keyReleased);

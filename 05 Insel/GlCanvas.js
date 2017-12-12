@@ -28,16 +28,14 @@ function GlCanvas() {
         this.activeObject = playCam;
 
         this.terrain = new Surface(0, -0.50005, 0);
-        this.water = new Water(0, 0, 0);
-        this.palm = new Palm(0, -0.2, 0);
+        this.water = new Water(0, 0, 0).scale(10);
+        this.palm = new Palm(0, -0.3, 0);
 
-        new Cube(0, 0, -2).scale(0.5);
-        new Cube(1, 0, 2).scale(0.5);
-        new Cube(2, 0, 4).scale(0.5);
-        new Cube(-2, 0, 4).scale(0.5);
-        new Cube(-1, 0, 2).scale(0.5);
-
-        new Cube(0, 0, 6).scale(0.5);
+        // new Cube(0, 0, -2).scale(0.5);
+        // new Cube(1, 0, 2).scale(0.5);
+        // new Cube(2, 0, 4).scale(0.5);
+        // new Cube(-2, 0, 4).scale(0.5);
+        // new Cube(-1, 0, 2).scale(0.5);
 
         this.construct();
     };
@@ -49,16 +47,14 @@ function GlCanvas() {
             object.texture = this.gl.createTexture();
             object.texture.image = new Image();
             object.texture.image.src = object.textureSrc;
-            object.texture.image.addEventListener('load', () => { this.handleTexture(object.texture) });
+            object.texture.image.addEventListener('load', () => {
+                this.gl.bindTexture(this.gl.TEXTURE_2D, object.texture);
+                this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, object.texture.image);
+                this.gl.generateMipmap(this.gl.TEXTURE_2D);
+                this.gl.bindTexture(this.gl.TEXTURE_2D, null);
+                object.texture.loaded = true;
+            });
         }
-    };
-
-    this.handleTexture = (texture) => {
-        this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
-        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, texture.image);
-        this.gl.generateMipmap(this.gl.TEXTURE_2D);
-        this.gl.bindTexture(this.gl.TEXTURE_2D, null);
-        texture.loaded = true;
     };
 
     this.remove = (object) => {
@@ -91,7 +87,7 @@ function GlCanvas() {
         // 5. Create VBO
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.gl.createBuffer());
 
-        // 6. Fill VBO with positions and colors
+        // 6. Fill VBO with positions and texture or colors
         if (object.texture !== undefined && object.texture.loaded) {
             this.gl.bufferData(this.gl.ARRAY_BUFFER, f32a(object.positions.concat(object.textureCoordinates)), this.gl.STATIC_DRAW);
 
@@ -100,15 +96,13 @@ function GlCanvas() {
             this.gl.enableVertexAttribArray(vTexture);
             this.gl.vertexAttribPointer(vTexture, 2, this.gl.FLOAT, false, 0, object.positions.length * 4);
 
+            // use texture 0
             this.gl.activeTexture(this.gl.TEXTURE0);
-
             this.gl.bindTexture(this.gl.TEXTURE_2D, object.texture);
-
-            this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
             this.gl.uniform1i(this.getUniform('uSampler'), 0);
 
+            // use texture, disable color attribute
             this.gl.uniform1i(this.getUniform('bUseTexture'), 1);
-
             this.gl.disableVertexAttribArray(this.getAttribute('vColor'));
         } else {
             this.gl.bufferData(this.gl.ARRAY_BUFFER, f32a(object.positions.concat(object.colors)), this.gl.STATIC_DRAW);
@@ -117,8 +111,9 @@ function GlCanvas() {
             let vColor = this.getAttribute('vColor');
             this.gl.enableVertexAttribArray(vColor);
             this.gl.vertexAttribPointer(vColor, 4, this.gl.FLOAT, false, 0, object.positions.length * 4);
-            this.gl.uniform1i(this.getUniform('bUseTexture'), 0);
 
+            // use colors, disable texture attribute
+            this.gl.uniform1i(this.getUniform('bUseTexture'), 0);
             this.gl.disableVertexAttribArray(this.getAttribute('vTexture'));
         }
 
@@ -179,6 +174,7 @@ function GlCanvas() {
     this.objects = [];
     this.activeObject = null;
     this.activeCamera = null;
+
     this.terrain = null;
     this.water = null;
     this.palm = null;

@@ -13,9 +13,6 @@ function Camera(x, y, z) {
     GlObject.call(this, x, y, z);
 
     this.update = () => {
-        if (this.jumping ) {
-            this.ty = 0.04;
-        }
         this.translate(this.tx, this.ty, this.tz);
     };
 
@@ -63,7 +60,6 @@ function Camera(x, y, z) {
                 this.ty = this.speed * UP[1];
                 break;
             case KEYCODE_SPACE:
-                // if (!this.jumping) this.jumping = true;
                 break;
         }
     };
@@ -80,6 +76,5 @@ function Camera(x, y, z) {
     this.tx = 0;
     this.ty = 0;
     this.tz = 0;
-    this.jumping = false;
     this.construct();
 }

@@ -77,7 +77,6 @@ function GlObject(x, y, z) {
     this.texture = undefined;
     this.textureSrc = '';
     this.textureCoordinates = [];
-    this.textureLoaded = false;
     this.activeKeys = [];
     this.keyChanged = false;
     this.rotationOrder = [X, Y, Z];
