@@ -66,6 +66,39 @@ function GlObject(x, y, z) {
         return Math.sqrt(Math.pow(x - this.x, 2) + Math.pow(y - this.y, 2) + Math.pow(z - this.z, 2));
     };
 
+    this.calculateNormals = (positions2) =>{
+        let normals = [];
+        for(let i=0; i<positions2.length; i+=9){
+            let polygon = [];
+            for(let j=0; j<9; j++){ 
+                polygon.push(positions2[j])
+            }
+            let normal = this.calculateNormal(polygon)
+            for(let j=0; j<3; j++){normals.push(vec3.normalize(normal, normal))}       
+        }
+        return normals;
+    }
+
+    this.calculateNormal = (positions) => {
+        let p1 = vec3.fromValues(positions[0], positions[1], positions[2]);
+        let p2 = vec3.fromValues(positions[3], positions[4], positions[5]);
+        let p3 = vec3.fromValues(positions[6], positions[7], positions[8]);
+        let v = vec3.create();
+        vec3.sub(v, p2, p1);
+
+        let w = vec3.create();
+        vec3.sub(w, p3, p1);
+
+        let N = vec3.create();
+        vec3.cross(N, v, w);
+
+        return new Float32Array([N[0], N[1], N[2]]); 
+    }
+
+    this.reflektionsKoeffizientAmbient = [1.0, 1.0 ,1.0];
+    this.reflektionsKoeffizientDiffus = [1.0, 1.0 ,1.0];
+    this.reflektionsKoeffizientSpekular = [1.0, 1.0 ,1.0];
+
     this.x = 0;
     this.y = 0;
     this.z = 0;
