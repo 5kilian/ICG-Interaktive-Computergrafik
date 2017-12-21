@@ -5,26 +5,13 @@
 		<title>05 Insel</title>
 
 		<script id="vertex-shader" type="x-shader/x-vertex">
-			attribute vec3 vNormal;
 			attribute vec4 vPosition;
 			attribute vec4 vColor;
 			attribute vec2 vTexture;
-			
-			uniform vec3 lichtIntensitaetAmbient;
-			uniform vec3 lichtIntensitaetDiffus;
-			uniform vec3 lichtIntensitaetSpekular;
 
-			uniform vec3 reflektionsKoeffizientAmbient;
-			uniform vec3 reflektionsKoeffizientDiffus;
-			uniform vec3 reflektionsKoeffizientSpekular;
-
-			uniform vec3 lichtPos;
-			
 			uniform mat4 mView;
 			uniform mat4 mTranslation;
 			uniform mat4 mProjection;
-			uniform mat4 modelMatrix;
-			uniform mat4 uNormalMatrix;
 
 			uniform mat4 mRotation0;
 			uniform mat4 mRotation1;
@@ -35,28 +22,8 @@
 
 			void main() {
 				vTextureCoord = vTexture;
-
-				vec4 vPositionKameraKoordinaten = mView * modelMatrix * vPosition;
-				vec3 vertPos = vec3(vPositionKameraKoordinaten) / vPositionKameraKoordinaten.w;
-
-				vec3 N = normalize(vec3(uNormalMatrix * vec4(vNormal, 0.0)));			
-				vec3 L = normalize(lichtPos - vertPos);				
-				vec3 R = reflect(-L,N.xyz);   //L - 2.0* dot(L, N.xyz)*N;
-				vec3 V = normalize(-vertPos);
-
-				float NmalL = max(dot(N, L), 0.0);
-				float RmalV = max(dot(R, V), 0.0);
-
-				float d = distance(L, vec3(0.0,0.0,0.0));
-				float fatt = min(1.0/(1.0 + 0.0005 * d + 0.000003 * pow(d, 2.0)),1.0);
-
-				vec4 lichtAmbient = vColor * vec4(lichtIntensitaetAmbient,1.0);
-				vec3 lichtDiffus = fatt * lichtIntensitaetDiffus * reflektionsKoeffizientDiffus * NmalL;
-				vec3 lichtSpekular = fatt * lichtIntensitaetSpekular * reflektionsKoeffizientSpekular * pow(RmalV,4.0);
-
-				fColor = lichtAmbient + vec4(lichtDiffus, 1.0) + vec4(lichtSpekular,1.0);
-
-				gl_Position = mProjection * vPositionKameraKoordinaten;   //gl_Position = mProjection * mView * mTranslation * mRotation0 *  mRotation1 * mRotation2 * vPosition;
+				fColor = vColor;
+				gl_Position = mProjection * mView * mTranslation * mRotation0 *  mRotation1 * mRotation2 * vPosition;
 			}
 		</script>
 		<script id="fragment-shader" type="x-shader/x-fragment">
@@ -87,8 +54,6 @@
 		<script type="text/javascript" src="Palm.js"></script>
 		<script type="text/javascript" src="Surface.js"></script>
 		<script type="text/javascript" src="Water.js"></script>
-		<script type="text/javascript" src="Licht.js"></script>
-		
 
 		<style>
 			body {
