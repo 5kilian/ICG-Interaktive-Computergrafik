@@ -68,7 +68,7 @@ function Palm(x, y, z) {
             return this;
         };
 
-        this.glMode = canvas.gl.TRIANGLE_FAN;
+        this.glMode = canvas.gl.TRIANGLES;
         this.construct();
     }
 
@@ -134,7 +134,7 @@ function Palm(x, y, z) {
             return this;
         };
 
-        this.glMode = canvas.gl.TRIANGLE_FAN;
+        this.glMode = canvas.gl.TRIANGLES;
         this.construct();
     }
 

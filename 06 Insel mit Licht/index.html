@@ -127,6 +127,17 @@
 		<input id="terrain" class="slider" type="range" min="0" max="20" value="0" oninput="increaseZIndex(this.value)" onchange="increaseZIndex(this.value)"/>
 		<input id="play" type="button" onclick="rpl()" value="play" style="margin: 5px 0 10px 0"/>
 
+		<br/>
+		<label for="lichtX">Licht X-Koordinate</label>
+		<input id="lichtX" class="slider" type="range" min="-100" max="100" value="0"/>
+
+		<label for="lichtZ">Licht Z-Koordinate</label>
+		<input id="lichtZ" class="slider" type="range" min="-100" max="100" value="0"/>
+
+		<br/>
+		<label for="Rotation">Rotation in Y</label>
+		<input id="rotation" class="slider" type="range" min="-100" max="100" value="0"/>
+
 		<canvas id="gl-canvas" width="1024" height="768">
 			If you see this, your browser doesn't support WebGL.
 		</canvas>
@@ -141,6 +152,8 @@
 			F - fall
 		</div>
 
+		<script type="text/javascript" src="GlCanvas.js"></script>
 		<script type="text/javascript" src="insel.js"></script>
+
 	</body>
 </html>

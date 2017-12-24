@@ -67,14 +67,20 @@ function GlObject(x, y, z) {
     };
 
     this.calculateNormals = (positions2) =>{
-        let normals = [];
-        for(let i=0; i<positions2.length; i+=9){
-            let polygon = [];
-            for(let j=0; j<9; j++){ 
-                polygon.push(positions2[j])
+        normals = [];
+        polygon = [];
+        for(let k=0; k<positions2.length; k+=9){
+            polygon = [];
+            for(let i=k; i<k+9; i++){
+                polygon.push(positions2[i]);
             }
-            let normal = this.calculateNormal(polygon)
-            for(let j=0; j<3; j++){normals.push(vec3.normalize(normal, normal))}       
+            let normalVec = this.calculateNormal(polygon);
+            let normalVec3  = vec3.fromValues(normalVec[0], normalVec[1], normalVec[2]);
+            vec3.normalize(normalVec3, normalVec3);
+
+            for(let i = 0; i<3; i++){
+                normals.push(normalVec3[0], normalVec3[1], normalVec3[2]);
+            }
         }
         return normals;
     }
@@ -84,15 +90,15 @@ function GlObject(x, y, z) {
         let p2 = vec3.fromValues(positions[3], positions[4], positions[5]);
         let p3 = vec3.fromValues(positions[6], positions[7], positions[8]);
         let v = vec3.create();
-        vec3.sub(v, p2, p1);
+        vec3.sub(v, p1, p2);
 
         let w = vec3.create();
-        vec3.sub(w, p3, p1);
+        vec3.sub(w, p3, p2);
 
         let N = vec3.create();
-        vec3.cross(N, v, w);
+        vec3.cross(N, w, v);
 
-        return new Float32Array([N[0], N[1], N[2]]); 
+        return N;  
     }
 
     this.reflektionsKoeffizientAmbient = [1.0, 1.0 ,1.0];

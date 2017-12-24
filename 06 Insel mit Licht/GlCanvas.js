@@ -30,11 +30,13 @@ function GlCanvas() {
         this.terrain = new Surface(0, -0.50005, 0);
         this.water = new Water(0, 0, 0).scale(10);
         this.palm = new Palm(0, -0.35, 0).scale(6, 0.6);
+        //this.palm.rotate(X,90);
+        //this.palm.rotate(Z,90);
         //this.cube = new Cube(1, -0.35, 0).scale(1, 0.6);
 
         this.licht = new Licht(-2,1,2);
         this.licht.scale(0.1, 0.6);
-        this.licht.setColorDiffus(1, 1.0, 1);
+        this.licht.setColorDiffus(1, 1, 1);
         this.licht.setColorSpekular(0,0,0);
 
 
@@ -219,6 +221,35 @@ function GlCanvas() {
 
         return object.positions.length / 3;
     };
+
+
+
+    var slider = document.getElementById("lichtX");
+    slider.oninput = (value) =>{
+       var val = document.getElementById("lichtX").value
+       this.licht.setPosition(0.1*val,1,this.licht.z);    
+    } 
+
+    var sliderZ = document.getElementById("lichtZ");
+    sliderZ.oninput = (value) =>{
+       var val = document.getElementById("lichtZ").value
+       this.licht.setPosition(this.licht.x,1,0.1*val);    
+    } 
+
+    var sliderRL = -1;
+    var sliderR = document.getElementById("rotation");
+    sliderR.oninput = (value) =>{
+       var val = document.getElementById("rotation").value
+       if(sliderRL == -1){
+        this.objects.forEach(object => object.rotate(Y,0.25));
+        sliderRL = val;
+       }else{
+           this.objects.forEach(object => object.rotate(Y,0.25*(val-sliderRL)));
+           console.log(sliderRL -val);
+           sliderRL = val;
+       }
+    } 
+
 
     this.getAttribute = (attribute) => this.gl.getAttribLocation(this.program, attribute);
 
