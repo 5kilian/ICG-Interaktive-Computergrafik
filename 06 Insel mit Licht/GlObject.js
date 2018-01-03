@@ -77,7 +77,7 @@ function GlObject(x, y, z) {
             let normalVec = this.calculateNormal(polygon);
             let normalVec3  = vec3.fromValues(normalVec[0], normalVec[1], normalVec[2]);
             vec3.normalize(normalVec3, normalVec3);
-
+            //debugger;
             for(let i = 0; i<3; i++){
                 normals.push(normalVec3[0], normalVec3[1], normalVec3[2]);
             }
@@ -104,6 +104,7 @@ function GlObject(x, y, z) {
     this.reflektionsKoeffizientAmbient = [1.0, 1.0 ,1.0];
     this.reflektionsKoeffizientDiffus = [1.0, 1.0 ,1.0];
     this.reflektionsKoeffizientSpekular = [1.0, 1.0 ,1.0];
+    this.shininess = 4.0;
 
     this.x = 0;
     this.y = 0;

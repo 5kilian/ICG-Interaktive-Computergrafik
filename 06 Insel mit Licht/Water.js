@@ -25,5 +25,9 @@ function Water(x, y, z) {
         return this;
     };
 
+    this.reflektionsKoeffizientAmbient = [0.9, 0.9 ,0.9];
+    this.reflektionsKoeffizientDiffus = [0.9, 0.9 ,0.9];
+    this.reflektionsKoeffizientSpekular = [0.7, 0.7 ,0.7];
+    this.shininess = 20.0;
     this.construct();
 }

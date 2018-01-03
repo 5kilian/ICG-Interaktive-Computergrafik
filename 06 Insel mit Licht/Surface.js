@@ -143,6 +143,9 @@ function Surface(x, y, z) {
     this.terrain = [];
     this.segments = 0;
     this.textureSrc = 'assets/texture-sand.jpg';
+    this.reflektionsKoeffizientAmbient = [0.4, 0.4 ,0.4];
+    this.reflektionsKoeffizientDiffus = [0.2, 0.2 ,0.2];
+    this.reflektionsKoeffizientSpekular = [0.1, 0.1 ,0.1];
     this.construct();
     // center after drawing for debugging purpose
     this.translate(-this.width/2, 0, -this.height/2);

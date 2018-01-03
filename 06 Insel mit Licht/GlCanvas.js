@@ -36,8 +36,7 @@ function GlCanvas() {
 
         this.licht = new Licht(-2,1,2);
         this.licht.scale(0.1, 0.6);
-        this.licht.setColorDiffus(1, 1, 1);
-        this.licht.setColorSpekular(0,0,0);
+      
 
 
 
@@ -181,19 +180,23 @@ function GlCanvas() {
         });
         
         this.gl.uniformMatrix4fv(this.gl.getUniformLocation(this.program, "modelMatrix"), false, mvMatrix);
-        mat4.transpose(mvMatrix, mvMatrix);
-        mat4.invert(mvMatrix, mvMatrix);
+       // mat4.transpose(mvMatrix, mvMatrix);
+       // mat4.invert(mvMatrix, mvMatrix);
+        let normalMatrix = [];
+        mat3.normalFromMat4(normalMatrix, mvMatrix);
         var uNormalMatrix = this.gl.getUniformLocation(this.program, "uNormalMatrix");
-        this.gl.uniformMatrix4fv(uNormalMatrix, false, f32a(mvMatrix));
+        this.gl.uniformMatrix3fv(uNormalMatrix, false, normalMatrix);
 
 
 
 
 
+        this.licht.setColorDiffus(1, 1, 1);
+        this.licht.setColorSpekular(1,1,1);
 
         //Test für Licht
         this.gl.uniform3fv(this.getUniform('lichtPos'), [this.licht.x, this.licht.y, this.licht.z]);
-        this.gl.uniform3fv(this.getUniform('lichtIntensitaetAmbient'), [0.0, 0.0, 0.0]);
+        this.gl.uniform3fv(this.getUniform('lichtIntensitaetAmbient'), [ 0.5, 0.5, 0.5]);
         this.gl.uniform3fv(this.getUniform('lichtIntensitaetDiffus'), this.licht.rgbDiffus);
         this.gl.uniform3fv(this.getUniform('lichtIntensitaetSpekular'), this.licht.rgbSpekular);
         
@@ -201,6 +204,7 @@ function GlCanvas() {
         this.gl.uniform3fv(this.getUniform('reflektionsKoeffizientAmbient'), object.reflektionsKoeffizientAmbient);
         this.gl.uniform3fv(this.getUniform('reflektionsKoeffizientDiffus'), object.reflektionsKoeffizientDiffus);
         this.gl.uniform3fv(this.getUniform('reflektionsKoeffizientSpekular'), object.reflektionsKoeffizientSpekular);
+        this.gl.uniform1f(this.getUniform('shininess'), object.shininess);
 
         this.gl.uniform3fv(this.getUniform('cameraPos'), [this.activeCamera.x, this.activeCamera.y, this.activeCamera.z]);
         //console.log(this.activeCamera.target.x)

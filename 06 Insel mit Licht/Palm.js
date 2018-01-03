@@ -20,23 +20,52 @@ function Palm(x, y, z) {
         this.scale = (size, factor) => {
             this.positions = [
                 // Front
-                -size, -size, size, size, -size,  size, size * factor,  size,  size * factor,
-                size * factor, size, size * factor, -size * factor,  size,  size * factor, -size, -size,  size,
+                -size, -size, size, 
+                size, -size,  size, 
+                size * factor,  size,  size * factor,
+                size * factor, size, size * factor, 
+                -size * factor,  size,  size * factor, 
+                -size, -size,  size,
+
                 // Right
-                size * factor, size,  size * factor, size, -size,  size, size, -size, -size,
-                size * factor,  size, -size * factor, size * factor,  size,  size * factor, size, -size, -size,
+                size * factor, size,  size * factor,
+                 size, -size,  size, 
+                 size, -size, -size,
+                size * factor,  size, -size * factor,
+                 size * factor,  size,  size * factor, 
+                 size, -size, -size,
+
                 // Back
-                -size, -size, -size, size, -size, -size, size * factor,  size, -size * factor,
-                size * factor, size, -size * factor, -size * factor,  size, -size * factor, -size, -size, -size,
+                -size, -size, -size, 
+                size * factor,  size, -size * factor,
+                size, -size, -size, 
+                size * factor, size, -size * factor, 
+                -size, -size, -size,
+                -size * factor,  size, -size * factor, 
+
                 // Left
-                -size * factor, size, size * factor, -size, -size,  size, -size, -size, -size,
-                -size * factor,  size, -size * factor, -size * factor, size, size * factor, -size, -size, -size,
+                -size * factor, size, size * factor, 
+                -size, -size, -size,
+                -size, -size,  size, 
+                -size * factor,  size, -size * factor,
+                -size, -size, -size,
+                 -size * factor, size, size * factor,
+
                 // Bottom
-                -size, -size, size, size, -size,  size, size, -size, -size,
-                size, -size, -size, -size, -size, -size, -size, -size,  size,
+                -size, -size, size, 
+                size, -size, -size,
+                size, -size,  size, 
+                size, -size, -size, 
+                -size, -size,  size,
+                -size, -size, -size,
+
                 // Top
-                -size * factor, size, size * factor, size * factor, size,  size * factor, size * factor, size, -size * factor,
-                size * factor, size, -size * factor, -size * factor, size, -size * factor, -size * factor, size, size * factor
+                -size * factor, size, size * factor,
+                 size * factor, size,  size * factor,
+                  size * factor, size, -size * factor,
+                size * factor, size, -size * factor,
+                 -size * factor, size, -size * factor,
+                  -size * factor, size, size * factor
             ];
 
             this.colors = [ ];
@@ -49,7 +78,9 @@ function Palm(x, y, z) {
 
             return this;
         };
-
+        this.reflektionsKoeffizientAmbient = [0.5, 0.5 ,0.5];
+        this.reflektionsKoeffizientDiffus = [0.5, 0.5 ,0.5];
+        this.reflektionsKoeffizientSpekular = [0.2, 0.2 ,0.2];
         this.construct();
     }
 
