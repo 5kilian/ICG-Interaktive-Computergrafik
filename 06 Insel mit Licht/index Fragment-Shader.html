@@ -10,38 +10,31 @@
 			attribute vec4 vColor;
 			attribute vec2 vTexture;
 			
-
-
-			uniform vec3 lichtPos;
+			uniform vec3 lichtPos[2];
 
 			uniform mat4 mView;
-			uniform mat4 mTranslation;
 			uniform mat4 mProjection;
 			uniform mat4 modelMatrix;
 			uniform mat3 uNormalMatrix;
 
-			uniform mat4 mRotation0;
-			uniform mat4 mRotation1;
-			uniform mat4 mRotation2;
-
 			varying vec4 fColor;
 			varying vec2 vTextureCoord;
 			varying vec3 normalInterp;
-			varying vec3 vertPos;
-			varying vec3 ambientColor;
-			varying vec3 lichtPosition;
+			varying vec3 vertPos; //Die Eckpunkte in Kamerakoordiaten
+			varying vec3 lichtPosition[2];
 
 			void main() {
 				vTextureCoord = vTexture;
-				ambientColor = vec3(vColor);
 
 				vec4 vPositionKameraKoordinaten = mView * modelMatrix * vPosition;
-				vertPos = vec3(vPositionKameraKoordinaten);
+				vertPos = vec3(vPositionKameraKoordinaten)/vPositionKameraKoordinaten.w;
 
 				vec3 N = normalize(uNormalMatrix * vNormal);			
 				normalInterp = N;
 
-				lichtPosition = vec3(mView * modelMatrix * vec4(lichtPos,1.0));
+				for(int i=0; i<2; i++){
+					lichtPosition[i] = vec3(mView * modelMatrix * vec4(lichtPos[i], 1.0));
+				}
 				fColor = vColor;
 				gl_Position = mProjection * vPositionKameraKoordinaten;
 			}
@@ -50,46 +43,49 @@
 			precision mediump float;
 
 			uniform vec3 lichtIntensitaetAmbient;
-			uniform vec3 lichtIntensitaetDiffus;
-			uniform vec3 lichtIntensitaetSpekular;
+			uniform vec3 lichtIntensitaetDiffus[2];
+			uniform vec3 lichtIntensitaetSpekular[2];
 
-			uniform vec3 reflektionsKoeffizientAmbient;
-			uniform vec3 reflektionsKoeffizientDiffus;
-			uniform vec3 reflektionsKoeffizientSpekular;
+			uniform vec3 reflexionsKoeffizientAmbient;
+			uniform vec3 reflexionsKoeffizientDiffus;
+			uniform vec3 reflexionsKoeffizientSpekular;
 			uniform float shininess;
 
-			varying vec3 lichtPosition;
+			varying vec3 lichtPosition[2];
 
 			varying vec4 fColor;
 			varying vec2 vTextureCoord;
 			varying vec3 normalInterp;
 			varying vec3 vertPos;
-			varying vec3 ambientColor;
 
 			uniform sampler2D uSampler;
-			uniform bool bUseTexture;
-			
-			void main() {
+			uniform bool bUseTexture;	
+
+			void main() {			
+				vec3 ambienteReflexion =  vec3(fColor) * lichtIntensitaetAmbient;
+				
+				vec4 fragColor;
 				vec3 normal = normalInterp;
-				vec3 L = normalize(lichtPosition - vertPos.xyz);		
-				vec3 R = reflect(-L,normal);	
-				vec3 V = normalize(-vertPos.xyz);
-
-				float LmalN = max(dot(L,normal), 0.0);
-    			float specular = 0.0;
-
-    			if(LmalN > 0.0) {
-      				float RmalV = max(dot(R, V), 0.0);
-       				specular = pow(RmalV, shininess);
+				for(int i = 0; i < 2; i++){
+					vec3 L = normalize(lichtPosition[i] - vertPos.xyz);		
+					vec3 R = reflect(-L,normal);	
+					vec3 V = normalize(-vertPos.xyz);
+	
+					float NmalL = max(dot(normal, L), 0.0);
+					float specular = 0.0;
+					if(NmalL > 0.0) {
+						float RmalV = max(dot(R, V), 0.0);
+						specular = pow(RmalV, shininess);
+					}
+	
+					float d = distance(L, vec3(0.0,0.0,0.0));
+					float fatt = min(1.0/(1.0 + 0.0005 * d + 0.000003 * pow(d, 2.0)),1.0);
+					vec3 diffuseReflexion = NmalL*lichtIntensitaetDiffus[i] * reflexionsKoeffizientDiffus;
+					vec3 spekulareReflexion = specular * lichtIntensitaetSpekular[i] * reflexionsKoeffizientSpekular;
+					fragColor += vec4(ambienteReflexion + fatt * (diffuseReflexion + spekulareReflexion), 1.0);
 				}
 
-				float d = distance(L, vec3(0.0,0.0,0.0));
-				float fatt = min(1.0/(1.0 + 0.0005 * d + 0.000003 * pow(d, 2.0)),1.0);
-
-				vec3 ambienteReflektion =  ambientColor * reflektionsKoeffizientAmbient * lichtIntensitaetAmbient;
-				vec3 diffuseReflektion = LmalN*lichtIntensitaetDiffus * reflektionsKoeffizientDiffus;
-				vec3 spekulareReflektion = specular * lichtIntensitaetSpekular * reflektionsKoeffizientSpekular;
-    			gl_FragColor =  vec4(ambienteReflektion + fatt * (diffuseReflektion + spekulareReflektion), 1.0);
+    			gl_FragColor =  fragColor;
 
 				if (bUseTexture) {
 					gl_FragColor += texture2D(uSampler, vTextureCoord);

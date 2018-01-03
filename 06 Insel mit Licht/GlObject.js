@@ -101,9 +101,9 @@ function GlObject(x, y, z) {
         return N;  
     }
 
-    this.reflektionsKoeffizientAmbient = [1.0, 1.0 ,1.0];
-    this.reflektionsKoeffizientDiffus = [1.0, 1.0 ,1.0];
-    this.reflektionsKoeffizientSpekular = [1.0, 1.0 ,1.0];
+    this.reflexionsKoeffizientAmbient = [1.0, 1.0 ,1.0];
+    this.reflexionsKoeffizientDiffus = [1.0, 1.0 ,1.0];
+    this.reflexionsKoeffizientSpekular = [1.0, 1.0 ,1.0];
     this.shininess = 4.0;
 
     this.x = 0;

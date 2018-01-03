@@ -13,7 +13,7 @@ function GlCanvas() {
     this.construct = () => {
         // 2. Configure viewport
         this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
-        this.gl.clearColor(0.95, 0.95, 0.95, 1.0);
+        this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
         this.gl.enable(this.gl.DEPTH_TEST);
 
         // 4. Init shader program via additional function and bind it
@@ -36,6 +36,16 @@ function GlCanvas() {
 
         this.licht = new Licht(-2,1,2);
         this.licht.scale(0.1, 0.6);
+        this.licht.setColorDiffus(1, 1, 1);
+        this.licht.setColorSpekular(1,1,1);
+
+        this.licht2 = new Licht(3,1,3);
+        this.licht2.scale(0.1, 0.6);
+        this.licht2.setColorDiffus(1, 0, 0);
+        this.licht2.setColorSpekular(1,0,0);
+
+        this.lichtquellen.push(this.licht);
+        this.lichtquellen.push(this.licht2);
       
 
 
@@ -191,19 +201,21 @@ function GlCanvas() {
 
 
 
-        this.licht.setColorDiffus(1, 1, 1);
-        this.licht.setColorSpekular(1,1,1);
+
 
         //Test für Licht
-        this.gl.uniform3fv(this.getUniform('lichtPos'), [this.licht.x, this.licht.y, this.licht.z]);
-        this.gl.uniform3fv(this.getUniform('lichtIntensitaetAmbient'), [ 0.5, 0.5, 0.5]);
-        this.gl.uniform3fv(this.getUniform('lichtIntensitaetDiffus'), this.licht.rgbDiffus);
-        this.gl.uniform3fv(this.getUniform('lichtIntensitaetSpekular'), this.licht.rgbSpekular);
-        
+        this.gl.uniform3fv(this.getUniform('licht'), [this.licht.x, this.licht.y, this.licht.z]);
 
-        this.gl.uniform3fv(this.getUniform('reflektionsKoeffizientAmbient'), object.reflektionsKoeffizientAmbient);
-        this.gl.uniform3fv(this.getUniform('reflektionsKoeffizientDiffus'), object.reflektionsKoeffizientDiffus);
-        this.gl.uniform3fv(this.getUniform('reflektionsKoeffizientSpekular'), object.reflektionsKoeffizientSpekular);
+        for(let i=0; i<this.lichtquellen.length; i++){
+            this.gl.uniform3fv(this.getUniform('lichtPos[' + i + ']'), [this.lichtquellen[i].x, this.lichtquellen[i].y, this.lichtquellen[i].z]);        
+            this.gl.uniform3fv(this.getUniform('lichtIntensitaetDiffus[' + i + ']'), this.lichtquellen[i].rgbDiffus);
+            this.gl.uniform3fv(this.getUniform('lichtIntensitaetSpekular[' + i + ']'), this.lichtquellen[i].rgbSpekular);
+        }
+        this.gl.uniform3fv(this.getUniform('lichtIntensitaetAmbient'), [ 0.2, 0.2, 0.2]);
+
+        this.gl.uniform3fv(this.getUniform('reflexionsKoeffizientAmbient'), object.reflexionsKoeffizientAmbient);
+        this.gl.uniform3fv(this.getUniform('reflexionsKoeffizientDiffus'), object.reflexionsKoeffizientDiffus);
+        this.gl.uniform3fv(this.getUniform('reflexionsKoeffizientSpekular'), object.reflexionsKoeffizientSpekular);
         this.gl.uniform1f(this.getUniform('shininess'), object.shininess);
 
         this.gl.uniform3fv(this.getUniform('cameraPos'), [this.activeCamera.x, this.activeCamera.y, this.activeCamera.z]);
@@ -231,13 +243,13 @@ function GlCanvas() {
     var slider = document.getElementById("lichtX");
     slider.oninput = (value) =>{
        var val = document.getElementById("lichtX").value
-       this.licht.setPosition(0.1*val,1,this.licht.z);    
+       this.licht2.setPosition(0.1*val,1,this.licht2.z);    
     } 
 
     var sliderZ = document.getElementById("lichtZ");
     sliderZ.oninput = (value) =>{
        var val = document.getElementById("lichtZ").value
-       this.licht.setPosition(this.licht.x,1,0.1*val);    
+       this.licht2.setPosition(this.licht2.x,1,0.1*val);    
     } 
 
     var sliderRL = -1;
@@ -281,7 +293,7 @@ function GlCanvas() {
     this.activeObject = null;
     this.activeCamera = null;
     this.licht = null;
-    //this.licht.setColorAmbient(0.5,0.5,0.5);
+    this.lichtquellen = [];    
 
     this.terrain = null;
     this.water = null;
