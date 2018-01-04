@@ -116,8 +116,8 @@ function Surface(x, y, z) {
                     iiws, zTerrain[i+1][j] + this.terrain[i+1][j], jhs,
                     iws, zTerrain[i][j] + this.terrain[i][j], jhs,
                     iiws, zTerrain[i+1][j+1] + this.terrain[i+1][j+1], jjhs,
-                    iws, zTerrain[i][j+1] + this.terrain[i][j+1], jjhs,
                     iiws, zTerrain[i+1][j] + this.terrain[i+1][j], jhs,
+                    iws, zTerrain[i][j+1] + this.terrain[i][j+1], jjhs,
                 );
             }
         }
@@ -143,9 +143,9 @@ function Surface(x, y, z) {
     this.terrain = [];
     this.segments = 0;
     this.textureSrc = 'assets/texture-sand.jpg';
-    this.reflektionsKoeffizientAmbient = [0.4, 0.4 ,0.4];
-    this.reflektionsKoeffizientDiffus = [0.2, 0.2 ,0.2];
-    this.reflektionsKoeffizientSpekular = [0.1, 0.1 ,0.1];
+    this.reflexionsKoeffizientAmbient = [0.9, 0.9 ,0.9];
+    this.reflexionsKoeffizientDiffus = [0.7, 0.7 ,0.7];
+    this.reflexionsKoeffizientSpekular = [0.0, 0.0 ,0.0];
     this.construct();
     // center after drawing for debugging purpose
     this.translate(-this.width/2, 0, -this.height/2);

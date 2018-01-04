@@ -36,13 +36,13 @@ function GlCanvas() {
 
         this.licht = new Licht(-2,1,2);
         this.licht.scale(0.1, 0.6);
-        this.licht.setColorDiffus(1, 1, 1);
-        this.licht.setColorSpekular(1,1,1);
+        this.licht.setColorDiffus(1, 0, 0);
+        this.licht.setColorSpekular(1, 0, 0);
 
         this.licht2 = new Licht(3,1,3);
         this.licht2.scale(0.1, 0.6);
-        this.licht2.setColorDiffus(1, 0, 0);
-        this.licht2.setColorSpekular(1,0,0);
+        this.licht2.setColorDiffus(1, 1, 1);
+        this.licht2.setColorSpekular(0,0,0);
 
         this.lichtquellen.push(this.licht);
         this.lichtquellen.push(this.licht2);
@@ -174,9 +174,7 @@ function GlCanvas() {
 
 
         //Hier wird die Modelmatrix berechnet, transponiert und invertiert (Noch nicht richtig)
-        let mvMatrix = mat4.create();
-        let orderReverse = object.rotationOrder.slice().reverse();
-        
+        let mvMatrix = mat4.create();      
         mat4.fromTranslation(mvMatrix, [object.x, object.y, object.z]); 
        
         object.rotationOrder.forEach((order, index) => {
@@ -210,6 +208,13 @@ function GlCanvas() {
             this.gl.uniform3fv(this.getUniform('lichtPos[' + i + ']'), [this.lichtquellen[i].x, this.lichtquellen[i].y, this.lichtquellen[i].z]);        
             this.gl.uniform3fv(this.getUniform('lichtIntensitaetDiffus[' + i + ']'), this.lichtquellen[i].rgbDiffus);
             this.gl.uniform3fv(this.getUniform('lichtIntensitaetSpekular[' + i + ']'), this.lichtquellen[i].rgbSpekular);
+
+            let lichtPosition = vec4.fromValues(this.lichtquellen[i].x, this.lichtquellen[i].y, this.lichtquellen[i].z, 1.0);
+           // debugger;
+            let vMatrix = this.activeCamera.getView();
+            vec4.transformMat4(lichtPosition, lichtPosition, vMatrix);
+            vec4.transformMat4(lichtPosition, lichtPosition, mvMatrix);
+            this.gl.uniform3fv(this.getUniform('lichtPosition[' + i + ']'), [lichtPosition[0], lichtPosition[1], lichtPosition[2]]);
         }
         this.gl.uniform3fv(this.getUniform('lichtIntensitaetAmbient'), [ 0.2, 0.2, 0.2]);
 

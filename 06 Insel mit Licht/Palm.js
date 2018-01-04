@@ -78,9 +78,9 @@ function Palm(x, y, z) {
 
             return this;
         };
-        this.reflektionsKoeffizientAmbient = [0.5, 0.5 ,0.5];
-        this.reflektionsKoeffizientDiffus = [0.1, 0.1 ,0.1];
-        this.reflektionsKoeffizientSpekular = [0.0, 0.0 ,0.0];
+        this.reflexionsKoeffizientAmbient = [0.7, 0.7 ,0.7];
+        this.reflexionsKoeffizientDiffus = [0.1, 0.1 ,0.1];
+        this.reflexionsKoeffizientSpekular = [0.0, 0.0 ,0.0];
         this.construct();
     }
 
@@ -100,9 +100,9 @@ function Palm(x, y, z) {
         };
 
         this.glMode = canvas.gl.TRIANGLES;
-        this.reflektionsKoeffizientAmbient = [0.5, 0.5 ,0.5];
-        this.reflektionsKoeffizientDiffus = [0.1, 0.5 ,0.1];
-        this.reflektionsKoeffizientSpekular = [0.3, 0.3 ,0.3];
+        this.reflexionsKoeffizientAmbient = [0.5, 0.5 ,0.5];
+        this.reflexionsKoeffizientDiffus = [0.5, 0.5 ,0.5];
+        this.reflexionsKoeffizientSpekular = [0.5, 0.5 ,0.5];
         this.construct();
     }
 
@@ -197,8 +197,8 @@ function Palm(x, y, z) {
     };
 
     this.objects = [];
-    this.reflektionsKoeffizientAmbient = [0.5, 0.5 ,0.5];
-    this.reflektionsKoeffizientDiffus = [0.1, 0.5 ,0.1];
-    this.reflektionsKoeffizientSpekular = [0.3, 0.3 ,0.3];
+    this.reflexionsKoeffizientAmbient = [0.5, 0.5 ,0.5];
+    this.reflexionsKoeffizientDiffus = [0.5, 0.5 ,0.5];
+    this.reflexionsKoeffizientSpekular = [0.5, 0.5 ,0.5];
     this.construct();
 }
