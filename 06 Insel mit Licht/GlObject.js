@@ -67,6 +67,7 @@ function GlObject(x, y, z) {
     };
 
     this.calculateNormals = (positions2) =>{
+        if(this.glMode == canvas.gl.TRIANGLES){      
         normals = [];
         polygon = [];
         for(let k=0; k<positions2.length; k+=9){
@@ -83,6 +84,26 @@ function GlObject(x, y, z) {
             }
         }
         return normals;
+    }
+    else if(this.glMode == canvas.gl.TRIANGLE_FAN){
+        normals = [];
+        polygon = [];
+        for(let k=3; k<positions2.length; k+=3){
+            polygon = [];
+            polygon.push(positions2[0], positions2[1], positions2[2]);
+            for(let i=k; i<k+6; i++){
+                polygon.push(positions2[i]);
+            }
+            let normalVec = this.calculateNormal(polygon);
+            let normalVec3  = vec3.fromValues(normalVec[0], normalVec[1], normalVec[2]);
+            vec3.normalize(normalVec3, normalVec3);
+            //debugger;
+            for(let i = 0; i<3; i++){
+                normals.push(normalVec3[0], normalVec3[1], normalVec3[2]);
+            }
+        }
+        return normals;
+    }
     }
 
     this.calculateNormal = (positions) => {

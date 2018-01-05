@@ -99,7 +99,7 @@ function Palm(x, y, z) {
             return this;
         };
 
-        this.glMode = canvas.gl.TRIANGLES;
+        this.glMode = canvas.gl.TRIANGLE_FAN;
         this.reflexionsKoeffizientAmbient = [0.5, 0.5 ,0.5];
         this.reflexionsKoeffizientDiffus = [0.5, 0.5 ,0.5];
         this.reflexionsKoeffizientSpekular = [0.5, 0.5 ,0.5];

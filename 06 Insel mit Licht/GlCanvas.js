@@ -173,7 +173,7 @@ function GlCanvas() {
         });
 
 
-        //Hier wird die Modelmatrix berechnet, transponiert und invertiert (Noch nicht richtig)
+        //Hier wird die Modelmatrix berechnet, transponiert und invertiert
         let mvMatrix = mat4.create();      
         mat4.fromTranslation(mvMatrix, [object.x, object.y, object.z]); 
        
@@ -204,16 +204,17 @@ function GlCanvas() {
         //Test für Licht
         this.gl.uniform3fv(this.getUniform('licht'), [this.licht.x, this.licht.y, this.licht.z]);
 
-        for(let i=0; i<this.lichtquellen.length; i++){
-            this.gl.uniform3fv(this.getUniform('lichtPos[' + i + ']'), [this.lichtquellen[i].x, this.lichtquellen[i].y, this.lichtquellen[i].z]);        
+        for(let i=0; i<this.lichtquellen.length; i++){      
+            this.gl.uniform3fv(this.getUniform('lichtPos[' + i + ']'), [this.lichtquellen[i].x, this.lichtquellen[i].y, this.lichtquellen[i].z]);  
             this.gl.uniform3fv(this.getUniform('lichtIntensitaetDiffus[' + i + ']'), this.lichtquellen[i].rgbDiffus);
             this.gl.uniform3fv(this.getUniform('lichtIntensitaetSpekular[' + i + ']'), this.lichtquellen[i].rgbSpekular);
 
             let lichtPosition = vec4.fromValues(this.lichtquellen[i].x, this.lichtquellen[i].y, this.lichtquellen[i].z, 1.0);
            // debugger;
+
             let vMatrix = this.activeCamera.getView();
             vec4.transformMat4(lichtPosition, lichtPosition, vMatrix);
-            vec4.transformMat4(lichtPosition, lichtPosition, mvMatrix);
+
             this.gl.uniform3fv(this.getUniform('lichtPosition[' + i + ']'), [lichtPosition[0], lichtPosition[1], lichtPosition[2]]);
         }
         this.gl.uniform3fv(this.getUniform('lichtIntensitaetAmbient'), [ 0.2, 0.2, 0.2]);

@@ -58,7 +58,8 @@
 			void main() {			
 				vec4 ambienteReflexion;
 				if(bUseTexture){
-					ambienteReflexion = texture2D(uSampler, vTextureCoord) * vec4(lichtIntensitaetAmbient, 1.0);
+					vec4 textur = texture2D(uSampler, vTextureCoord);
+					ambienteReflexion = vec4(textur.rgb * lichtIntensitaetAmbient, textur.a);
 				} else{
 					ambienteReflexion =  fColor * vec4(lichtIntensitaetAmbient, 1.0);
 				}
