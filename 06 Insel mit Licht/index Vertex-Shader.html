@@ -11,15 +11,15 @@
 			attribute vec2 vTexture;
 			
 			uniform vec3 lichtIntensitaetAmbient;
-			uniform vec3 lichtIntensitaetDiffus[2];
-			uniform vec3 lichtIntensitaetSpekular[2];
+			uniform vec3 lichtIntensitaetDiffus[3];
+			uniform vec3 lichtIntensitaetSpekular[3];
 
 			uniform vec3 reflexionsKoeffizientAmbient;
 			uniform vec3 reflexionsKoeffizientDiffus;
 			uniform vec3 reflexionsKoeffizientSpekular;
 			uniform float shininess;
 
-			uniform vec3 lichtPos[2];
+			uniform vec3 lichtPos[3];
 			
 			uniform mat4 mView;
 			uniform mat4 mTranslation;
@@ -42,7 +42,7 @@
 
 				vec4 lichtAmbient = vColor * vec4(lichtIntensitaetAmbient,1.0);
 				vec4 fragColor = lichtAmbient;
-				for(int i=0; i<2; i++){
+				for(int i=0; i<3; i++){
 					vec3 lichtPosition = vec3(mView * modelMatrix * vec4(lichtPos[i],1.0));
 					vec3 N = normalize(uNormalMatrix * vNormal);			
 					vec3 L = normalize(lichtPosition - vPositionKameraKoordinaten.xyz);				
@@ -65,6 +65,70 @@
 				gl_Position = mProjection * vPositionKameraKoordinaten;   //gl_Position = mProjection * mView * mTranslation * mRotation0 *  mRotation1 * mRotation2 * vPosition;
 			}
 		</script>
+
+		<script id="vertex-shader-Palme" type="x-shader/x-vertex">
+			//Dieser Shader wirkt nur für die Palme. Es wird hier nur eine Lichtquelle berücksichtigt.
+			attribute vec3 vNormal;
+			attribute vec4 vPosition;
+			attribute vec4 vColor;
+			attribute vec2 vTexture;
+			
+			uniform vec3 lichtIntensitaetAmbient;
+			uniform vec3 lichtIntensitaetDiffus[3];
+			uniform vec3 lichtIntensitaetSpekular[3];
+
+			uniform vec3 reflexionsKoeffizientAmbient;
+			uniform vec3 reflexionsKoeffizientDiffus;
+			uniform vec3 reflexionsKoeffizientSpekular;
+			uniform float shininess;
+
+			uniform vec3 lichtPos[3];
+			
+			uniform mat4 mView;
+			uniform mat4 mTranslation;
+			uniform mat4 mProjection;
+			uniform mat4 modelMatrix;
+			uniform mat3 uNormalMatrix;
+
+			uniform mat4 mRotation0;
+			uniform mat4 mRotation1;
+			uniform mat4 mRotation2;
+
+			varying vec4 fColor;
+			varying vec2 vTextureCoord;
+
+			void main() {
+				vTextureCoord = vTexture;
+
+				vec4 vPositionKameraKoordinaten = mView * modelMatrix * vPosition;
+				vec3 vertPos = vec3(vPositionKameraKoordinaten) / vPositionKameraKoordinaten.w;
+
+				vec4 lichtAmbient = vColor * vec4(lichtIntensitaetAmbient,1.0);
+				vec4 fragColor = lichtAmbient;
+				for(int i=0; i<1; i++){
+					vec3 lichtPosition = vec3(mView * modelMatrix * vec4(lichtPos[0],1.0));
+					vec3 N = normalize(uNormalMatrix * vNormal);			
+					vec3 L = normalize(lichtPosition - vPositionKameraKoordinaten.xyz);				
+					vec3 R = reflect(-L,N);   
+					vec3 V = normalize(-vPositionKameraKoordinaten.xyz);
+
+					float NmalL = max(dot(N, L), 0.0);
+					float RmalV = max(dot(R, V), 0.0);
+
+					float d = distance(L, vec3(0.0,0.0,0.0));
+					float fatt = min(1.0/(1.0 + 0.0005 * d + 0.000003 * pow(d, 2.0)),1.0);
+
+					vec3 lichtDiffus =  fatt * lichtIntensitaetDiffus[0] * reflexionsKoeffizientDiffus * NmalL;
+					vec3 lichtSpekular =  fatt * lichtIntensitaetSpekular[0] * reflexionsKoeffizientSpekular * pow(RmalV, shininess);
+					fragColor += vec4(fatt * (lichtDiffus + lichtSpekular), 1.0);
+				}
+
+				fColor = fragColor;
+
+				gl_Position = mProjection * vPositionKameraKoordinaten;   //gl_Position = mProjection * mView * mTranslation * mRotation0 *  mRotation1 * mRotation2 * vPosition;
+			}
+		</script>
+
 		<script id="fragment-shader" type="x-shader/x-fragment">
 			precision mediump float;
 
@@ -139,10 +203,6 @@
 
 		<label for="lichtZ">Licht Z-Koordinate</label>
 		<input id="lichtZ" class="slider" type="range" min="-100" max="100" value="0"/>
-
-		<br/>
-		<label for="Rotation">Rotation in Y</label>
-		<input id="rotation" class="slider" type="range" min="-100" max="100" value="0"/>
 
 		<canvas id="gl-canvas" width="1024" height="768">
 			If you see this, your browser doesn't support WebGL.

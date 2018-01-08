@@ -17,7 +17,17 @@ function GlCanvas() {
         this.gl.enable(this.gl.DEPTH_TEST);
 
         // 4. Init shader program via additional function and bind it
-        this.program = initShader(this.gl, "vertex-shader", "fragment-shader");
+        var fileName = location.href.split("/").slice(-1); 
+        debugger;
+        if(fileName == "index%20Vertex-Shader.html"){
+            this.programPalme = initShader(this.gl, "vertex-shader-Palme", "fragment-shader")
+        }
+        else{
+            this.programPalme = initShader(this.gl, "vertex-shader", "fragment-shader-Palme");
+        }
+        //debugger;
+        this.programNormal = initShader(this.gl, "vertex-shader", "fragment-shader");
+        this.program = this.programNormal;
         this.gl.useProgram(this.program);
 
         requestAnimationFrame(this.tick);
@@ -42,11 +52,16 @@ function GlCanvas() {
         this.licht2 = new Licht(3,1,3);
         this.licht2.scale(0.1, 0.6);
         this.licht2.setColorDiffus(1, 1, 1);
-        this.licht2.setColorSpekular(0,0,0);
+        this.licht2.setColorSpekular(0.5,0.5,0.5);
+
+        this.licht3 = new Licht(3,1,-3);
+        this.licht3.scale(0.1, 0.6);
+        this.licht3.setColorDiffus(0, 0, 1);
+        this.licht3.setColorSpekular(0.0,0.0,0.5);
 
         this.lichtquellen.push(this.licht);
         this.lichtquellen.push(this.licht2);
-      
+        this.lichtquellen.push(this.licht3);
 
 
 
@@ -103,7 +118,16 @@ function GlCanvas() {
     };
 
     this.drawObject = (object) => {
-        //console.log("Normale: " + object.calculateNormal([0,0,0,   1,1,0,   0,1,0]));
+       
+        if(object.constructor.name == "PalmPart"){ //Der Stamm der Palme benutzt einen anderen Shader.
+            this.program = this.programPalme;
+            this.gl.useProgram(this.programPalme);
+        }
+        else{
+            this.program = this.programNormal;
+            this.gl.useProgram(this.programNormal);
+        }
+
         // 5. Create VBO
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.gl.createBuffer());
         let normals = object.calculateNormals(object.positions);
@@ -209,11 +233,14 @@ function GlCanvas() {
             this.gl.uniform3fv(this.getUniform('lichtIntensitaetDiffus[' + i + ']'), this.lichtquellen[i].rgbDiffus);
             this.gl.uniform3fv(this.getUniform('lichtIntensitaetSpekular[' + i + ']'), this.lichtquellen[i].rgbSpekular);
 
-            let lichtPosition = vec4.fromValues(this.lichtquellen[i].x, this.lichtquellen[i].y, this.lichtquellen[i].z, 1.0);
-           // debugger;
-
+            let lichtPosition = vec4.fromValues(0.0, 0.0, 0.0, 1.0);
             let vMatrix = this.activeCamera.getView();
-            vec4.transformMat4(lichtPosition, lichtPosition, vMatrix);
+            let translationVector = vec3.fromValues(this.lichtquellen[i].x, this.lichtquellen[i].y, this.lichtquellen[i].z);
+            let translationMatrix = [];
+            mat4.fromTranslation(translationMatrix, translationVector);
+            let mvMatrix = [];
+            mat4.multiply(mvMatrix, vMatrix, translationMatrix);
+            vec4.transformMat4(lichtPosition, lichtPosition, mvMatrix);
 
             this.gl.uniform3fv(this.getUniform('lichtPosition[' + i + ']'), [lichtPosition[0], lichtPosition[1], lichtPosition[2]]);
         }
@@ -258,7 +285,7 @@ function GlCanvas() {
        this.licht2.setPosition(this.licht2.x,1,0.1*val);    
     } 
 
-    var sliderRL = -1;
+/*     var sliderRL = -1;
     var sliderR = document.getElementById("rotation");
     sliderR.oninput = (value) =>{
        var val = document.getElementById("rotation").value
@@ -270,7 +297,7 @@ function GlCanvas() {
            console.log(sliderRL -val);
            sliderRL = val;
        }
-    } 
+    }  */
 
 
     this.getAttribute = (attribute) => this.gl.getAttribLocation(this.program, attribute);

@@ -37,15 +37,15 @@
 			precision mediump float;
 
 			uniform vec3 lichtIntensitaetAmbient;
-			uniform vec3 lichtIntensitaetDiffus[2];
-			uniform vec3 lichtIntensitaetSpekular[2];
+			uniform vec3 lichtIntensitaetDiffus[3];
+			uniform vec3 lichtIntensitaetSpekular[3];
 
 			uniform vec3 reflexionsKoeffizientAmbient;
 			uniform vec3 reflexionsKoeffizientDiffus;
 			uniform vec3 reflexionsKoeffizientSpekular;
 			uniform float shininess;
 
-			uniform vec3 lichtPosition[2];
+			uniform vec3 lichtPosition[3];
 
 			varying vec4 fColor;
 			varying vec2 vTextureCoord;
@@ -66,7 +66,7 @@
 				
 				vec4 fragColor = ambienteReflexion;
 				vec3 N = normalInterp;
-				for(int i = 0; i < 2; i++){
+				for(int i = 0; i < 3; i++){
 					vec3 L = normalize(lichtPosition[i] - vertPos.xyz);		
 					vec3 R = reflect(-L,N);	
 					vec3 V = normalize(-vertPos.xyz);
@@ -82,10 +82,67 @@
 					float fatt = min(1.0/(1.0 + 0.0005 * d + 0.000003 * pow(d, 2.0)), 1.0);
 					vec3 diffuseReflexion = NmalL * lichtIntensitaetDiffus[i] * reflexionsKoeffizientDiffus;
 					vec3 spekulareReflexion = specular * lichtIntensitaetSpekular[i] * reflexionsKoeffizientSpekular;
-					fragColor += vec4(fatt * (diffuseReflexion + spekulareReflexion), 1.0);
+					fragColor += vec4(fatt * (diffuseReflexion + spekulareReflexion), 0.0);
 				}
 
-    			gl_FragColor =  fragColor;
+    			gl_FragColor =  vec4(fragColor.rgb, 1.0);
+			}
+		</script>
+		
+		<script id="fragment-shader-Palme" type="x-shader/x-fragment">
+			//Dieser Shader wirkt nur für die Palme. In diesem Shader wird nur eine Lichtquelle berücksichtigt.
+			precision mediump float;
+
+			uniform vec3 lichtIntensitaetAmbient;
+			uniform vec3 lichtIntensitaetDiffus[3];
+			uniform vec3 lichtIntensitaetSpekular[3];
+
+			uniform vec3 reflexionsKoeffizientAmbient;
+			uniform vec3 reflexionsKoeffizientDiffus;
+			uniform vec3 reflexionsKoeffizientSpekular;
+			uniform float shininess;
+
+			uniform vec3 lichtPosition[3];
+
+			varying vec4 fColor;
+			varying vec2 vTextureCoord;
+			varying vec3 normalInterp;
+			varying vec3 vertPos;
+
+			uniform sampler2D uSampler;
+			uniform bool bUseTexture;	
+
+			void main() {			
+				vec4 ambienteReflexion;
+				if(bUseTexture){
+					vec4 textur = texture2D(uSampler, vTextureCoord);
+					ambienteReflexion = vec4(textur.rgb * lichtIntensitaetAmbient, textur.a);
+				} else{
+					ambienteReflexion =  fColor * vec4(lichtIntensitaetAmbient, 1.0);
+				}
+				
+				vec4 fragColor = ambienteReflexion;
+				vec3 N = normalInterp;
+				for(int i = 0; i < 1; i++){
+					vec3 L = normalize(lichtPosition[0] - vertPos.xyz);		
+					vec3 R = reflect(-L,N);	
+					vec3 V = normalize(-vertPos.xyz);
+	
+					float NmalL = max(dot(L, N), 0.0);
+					float specular = 0.0;
+					if(NmalL > 0.0) {
+						float RmalV = max(dot(R, V), 0.0);
+						specular = pow(RmalV, shininess);
+					}
+	
+					float d = distance(L, vec3(0.0,0.0,0.0));
+					float fatt = min(1.0/(1.0 + 0.0005 * d + 0.000003 * pow(d, 2.0)), 1.0);
+					vec3 diffuseReflexion = NmalL * lichtIntensitaetDiffus[0] * reflexionsKoeffizientDiffus;
+					vec3 spekulareReflexion = specular * lichtIntensitaetSpekular[0] * reflexionsKoeffizientSpekular;
+					fragColor += vec4(fatt * (diffuseReflexion + spekulareReflexion), 0.0);
+				}
+
+    			gl_FragColor =  vec4(fragColor.rgb, 1.0);
 			}
 		</script>
 
@@ -145,10 +202,6 @@
 
 		<label for="lichtZ">Licht Z-Koordinate</label>
 		<input id="lichtZ" class="slider" type="range" min="-100" max="100" value="0"/>
-
-		<br/>
-		<label for="Rotation">Rotation in Y</label>
-		<input id="rotation" class="slider" type="range" min="-100" max="100" value="0"/>
 
 		<canvas id="gl-canvas" width="1024" height="768">
 			If you see this, your browser doesn't support WebGL.
