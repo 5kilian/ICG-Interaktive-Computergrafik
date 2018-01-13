@@ -1,0 +1,225 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta charset="utf-8"/>
+		<title>06 Insel mit Licht</title>
+
+		<script id="vertex-shader" type="x-shader/x-vertex">
+			attribute vec3 vNormal;
+			attribute vec4 vPosition;
+			attribute vec4 vColor;
+			attribute vec2 vTexture;
+			
+			uniform vec3 lichtIntensitaetAmbient;
+			uniform vec3 lichtIntensitaetDiffus[3];
+			uniform vec3 lichtIntensitaetSpekular[3];
+
+			uniform vec3 reflexionsKoeffizientAmbient;
+			uniform vec3 reflexionsKoeffizientDiffus;
+			uniform vec3 reflexionsKoeffizientSpekular;
+			uniform float shininess;
+
+			uniform vec3 lichtPos[3];
+			
+			uniform mat4 mView;
+			uniform mat4 mTranslation;
+			uniform mat4 mProjection;
+			uniform mat4 modelMatrix;
+			uniform mat3 uNormalMatrix;
+
+			uniform mat4 mRotation0;
+			uniform mat4 mRotation1;
+			uniform mat4 mRotation2;
+
+			varying vec4 fColor;
+			varying vec2 vTextureCoord;
+
+			void main() {
+				vTextureCoord = vTexture;
+
+				vec4 vPositionKameraKoordinaten = mView * modelMatrix * vPosition;
+				vec3 vertPos = vec3(vPositionKameraKoordinaten) / vPositionKameraKoordinaten.w;
+
+				vec4 lichtAmbient = vColor * vec4(lichtIntensitaetAmbient,1.0);
+				vec4 fragColor = lichtAmbient;
+				for(int i=0; i<3; i++){
+					vec3 lichtPosition = vec3(mView * modelMatrix * vec4(lichtPos[i],1.0));
+					vec3 N = normalize(uNormalMatrix * vNormal);			
+					vec3 L = normalize(lichtPosition - vPositionKameraKoordinaten.xyz);				
+					vec3 R = reflect(-L,N);   
+					vec3 V = normalize(-vPositionKameraKoordinaten.xyz);
+
+					float NmalL = max(dot(N, L), 0.0);
+					float RmalV = max(dot(R, V), 0.0);
+
+					float d = distance(L, vec3(0.0,0.0,0.0));
+					float fatt = min(1.0/(1.0 + 0.0005 * d + 0.000003 * pow(d, 2.0)),1.0);
+
+					vec3 lichtDiffus =  fatt * lichtIntensitaetDiffus[i] * reflexionsKoeffizientDiffus * NmalL;
+					vec3 lichtSpekular =  fatt * lichtIntensitaetSpekular[i] * reflexionsKoeffizientSpekular * pow(RmalV, shininess);
+					fragColor += vec4(fatt * (lichtDiffus + lichtSpekular), 1.0);
+				}
+
+				fColor = fragColor;
+
+				gl_Position = mProjection * vPositionKameraKoordinaten;   //gl_Position = mProjection * mView * mTranslation * mRotation0 *  mRotation1 * mRotation2 * vPosition;
+			}
+		</script>
+
+		<script id="vertex-shader-Palme" type="x-shader/x-vertex">
+			//Dieser Shader wirkt nur für den Stamm der Palme. Es wird hier nur eine Lichtquelle berücksichtigt.
+			attribute vec3 vNormal;
+			attribute vec4 vPosition;
+			attribute vec4 vColor;
+			attribute vec2 vTexture;
+			
+			uniform vec3 lichtIntensitaetAmbient;
+			uniform vec3 lichtIntensitaetDiffus[3];
+			uniform vec3 lichtIntensitaetSpekular[3];
+
+			uniform vec3 reflexionsKoeffizientAmbient;
+			uniform vec3 reflexionsKoeffizientDiffus;
+			uniform vec3 reflexionsKoeffizientSpekular;
+			uniform float shininess;
+
+			uniform vec3 lichtPos[3];
+			
+			uniform mat4 mView;
+			uniform mat4 mTranslation;
+			uniform mat4 mProjection;
+			uniform mat4 modelMatrix;
+			uniform mat3 uNormalMatrix;
+
+			uniform mat4 mRotation0;
+			uniform mat4 mRotation1;
+			uniform mat4 mRotation2;
+
+			varying vec4 fColor;
+			varying vec2 vTextureCoord;
+
+			void main() {
+				vTextureCoord = vTexture;
+
+				vec4 vPositionKameraKoordinaten = mView * modelMatrix * vPosition;
+				vec3 vertPos = vec3(vPositionKameraKoordinaten) / vPositionKameraKoordinaten.w;
+
+				vec4 lichtAmbient = vColor * vec4(lichtIntensitaetAmbient,1.0);
+				vec4 fragColor = lichtAmbient;
+				for(int i=0; i<1; i++){
+					vec3 lichtPosition = vec3(mView * modelMatrix * vec4(lichtPos[0],1.0));
+					vec3 N = normalize(uNormalMatrix * vNormal);			
+					vec3 L = normalize(lichtPosition - vPositionKameraKoordinaten.xyz);				
+					vec3 R = reflect(-L,N);   
+					vec3 V = normalize(-vPositionKameraKoordinaten.xyz);
+
+					float NmalL = max(dot(N, L), 0.0);
+					float RmalV = max(dot(R, V), 0.0);
+
+					float d = distance(L, vec3(0.0,0.0,0.0));
+					float fatt = min(1.0/(1.0 + 0.0005 * d + 0.000003 * pow(d, 2.0)),1.0);
+
+					vec3 lichtDiffus =  fatt * lichtIntensitaetDiffus[0] * reflexionsKoeffizientDiffus * NmalL;
+					vec3 lichtSpekular =  fatt * lichtIntensitaetSpekular[0] * reflexionsKoeffizientSpekular * pow(RmalV, shininess);
+					fragColor += vec4(fatt * (lichtDiffus + lichtSpekular), 1.0);
+				}
+
+				fColor = fragColor;
+
+				gl_Position = mProjection * vPositionKameraKoordinaten;   //gl_Position = mProjection * mView * mTranslation * mRotation0 *  mRotation1 * mRotation2 * vPosition;
+			}
+		</script>
+
+		<script id="fragment-shader" type="x-shader/x-fragment">
+			precision mediump float;
+
+			varying vec4 fColor;
+			varying vec2 vTextureCoord;
+
+			uniform sampler2D uSampler;
+			uniform bool bUseTexture;
+			
+			void main() {
+				if (bUseTexture) {
+					gl_FragColor = texture2D(uSampler, vTextureCoord);
+				} else {
+					gl_FragColor = fColor;
+				}
+			}
+		</script>
+
+		<script type="text/javascript" src="common/initShaders.js"></script>
+		<script type="text/javascript" src="common/gl-matrix.js"></script>
+		<script type="text/javascript" src="common/constants.js"></script>
+		<script type="text/javascript" src="GlCanvas.js"></script>
+		<script type="text/javascript" src="GlObject.js"></script>
+		<script type="text/javascript" src="Camera.js"></script>
+		<script type="text/javascript" src="Cube.js"></script>
+		<script type="text/javascript" src="Palm.js"></script>
+		<script type="text/javascript" src="Surface.js"></script>
+		<script type="text/javascript" src="Water.js"></script>
+		<script type="text/javascript" src="Licht.js"></script>
+		
+
+		<style>
+			body {
+				max-width: 1000px;
+				margin: auto;
+			}
+			#gl-canvas {
+				border: 1px solid #00000066;
+				margin: auto;
+				display: block
+			}
+			.slider {
+				background: transparent;
+				display: block;
+				height: 1.2rem;
+				width: 12em;
+			}
+			.slider::-moz-range-thumb {
+				background: #5755d9;
+				border: 0;
+				height: 0.6rem;
+				width: 0.6rem;
+			}
+			.slider::-moz-range-track {
+				background: #f0f1f4;
+				border-radius: 0.25rem;
+				height: 0.25rem;
+				width: 100%;
+			}
+		</style>
+	</head>
+	<body onload="init()">
+		<h1>Insel</h1>
+
+		<label for="terrain">Terrain</label>
+		<input id="terrain" class="slider" type="range" min="0" max="20" value="0" oninput="increaseZIndex(this.value)" onchange="increaseZIndex(this.value)"/>
+		<input id="play" type="button" onclick="rpl()" value="play" style="margin: 5px 0 10px 0"/>
+
+		<br/>
+		<label for="lichtX">Licht X-Koordinate</label>
+		<input id="lichtX" class="slider" type="range" min="-100" max="100" value="0"/>
+
+		<label for="lichtZ">Licht Z-Koordinate</label>
+		<input id="lichtZ" class="slider" type="range" min="-100" max="100" value="0"/>
+
+		<canvas id="gl-canvas" width="1024" height="768">
+			If you see this, your browser doesn't support WebGL.
+		</canvas>
+
+		<div style="margin-top: 5px">
+			Controls:<br>
+			W - walk forward<br>
+			A - strafe left<br>
+			S - walk backward<br>
+			D - strafe right<br>
+			R - rise<br>
+			F - fall
+		</div>
+
+		<script type="text/javascript" src="GlCanvas.js"></script>
+		<script type="text/javascript" src="insel.js"></script>
+
+	</body>
+</html>

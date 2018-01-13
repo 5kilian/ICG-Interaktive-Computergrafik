@@ -1,0 +1,193 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta charset="utf-8"/>
+		<title>06 Insel mit Licht</title>
+
+		<script id="vertex-shader" type="x-shader/x-vertex">
+			attribute vec3 vNormal;
+			attribute vec4 vPosition;
+			attribute vec4 vColor;
+			attribute vec2 vTexture;
+
+			uniform mat4 mView;
+			uniform mat4 mProjection;
+			uniform mat4 modelMatrix;
+			uniform mat3 uNormalMatrix;
+
+			varying vec4 fColor;
+			varying vec2 vTextureCoord;
+			varying vec3 normalInterp;
+			varying vec3 vertPos; //Die Eckpunkte in Kamerakoordiaten
+
+			void main() {
+				vTextureCoord = vTexture;
+
+				vec4 vPositionKameraKoordinaten = mView * modelMatrix * vPosition;
+				vertPos = vec3(vPositionKameraKoordinaten)/vPositionKameraKoordinaten.w;
+
+				vec3 N = normalize(uNormalMatrix * vNormal);			
+				normalInterp = N;
+
+				fColor = vColor;
+				gl_Position = mProjection * vPositionKameraKoordinaten;
+			}
+		</script>
+		<script id="fragment-shader" type="x-shader/x-fragment">
+			precision mediump float;
+
+			uniform vec3 lichtIntensitaetAmbient;
+			uniform vec3 lichtIntensitaetDiffus[3];
+			uniform vec3 lichtIntensitaetSpekular[3];
+
+			uniform vec3 reflexionsKoeffizientAmbient;
+			uniform vec3 reflexionsKoeffizientDiffus;
+			uniform vec3 reflexionsKoeffizientSpekular;
+			uniform float shininess;
+
+			uniform mat3 uNormalMatrix2;
+
+			uniform vec3 lichtPosition[3];
+
+			varying vec4 fColor;
+			varying vec2 vTextureCoord;
+			varying vec3 normalInterp;
+			varying vec3 vertPos;
+
+			uniform sampler2D uSampler;
+			uniform sampler2D uNormalSampler;
+			uniform bool bUseTexture;	
+
+			void main() {			
+				vec4 ambienteReflexion;
+				if(bUseTexture){
+					vec4 textur = texture2D(uSampler, vTextureCoord);
+					ambienteReflexion = vec4(textur.rgb * lichtIntensitaetAmbient, textur.a);
+				} else{
+					ambienteReflexion =  fColor * vec4(lichtIntensitaetAmbient, 1.0);
+				}
+				
+				vec4 fragColor = ambienteReflexion;
+				
+				
+				
+				vec3 tangent; 
+				vec3 t1 = cross(normalInterp, vec3(0.0, 0.0, 1.0)); 
+				vec3 t2 = cross(normalInterp, vec3(0.0, 1.0, 0.0)); 
+				if (length(t1) > length(t2)) { 
+					tangent = normalize(t1); 
+				} else { 
+					tangent = normalize(t2); 
+				} 
+				vec3 n = normalize(uNormalMatrix2 * normalInterp); 
+				vec3 t = normalize(uNormalMatrix2 * tangent); 
+				vec3 b = cross(n, t); 
+				
+				mat3 tbnMatrix = mat3(t, b, n);
+				
+				vec3 textureNormal = vec3(texture2D(uNormalSampler, vTextureCoord));
+				
+				vec3 textureNormalsInCameraSpace = tbnMatrix * textureNormal;
+				
+				vec3 N = textureNormalsInCameraSpace;
+				for(int i = 0; i < 3; i++){
+					vec3 L = normalize(lichtPosition[i] - vertPos.xyz);		
+					vec3 R = reflect(-L,N);	
+					vec3 V = normalize(-vertPos.xyz);
+	
+					float NmalL = max(dot(L, N), 0.0);
+					float specular = 0.0;
+					if(NmalL > 0.0) {
+						float RmalV = max(dot(R, V), 0.0);
+						specular = pow(RmalV, shininess);
+					}
+	
+					float d = distance(L, vec3(0.0,0.0,0.0));
+					float fatt = min(1.0/(1.0 + 0.0005 * d + 0.000003 * pow(d, 2.0)), 1.0);
+					vec3 diffuseReflexion = NmalL * lichtIntensitaetDiffus[i] * reflexionsKoeffizientDiffus;
+					vec3 spekulareReflexion = specular * lichtIntensitaetSpekular[i] * reflexionsKoeffizientSpekular;
+					fragColor += vec4(fatt * (diffuseReflexion + spekulareReflexion), 0.0);
+				}
+
+    			gl_FragColor =  vec4(fragColor.rgb, 1.0);
+			}
+		</script>
+		
+		
+
+		<script type="text/javascript" src="common/initShaders.js"></script>
+		<script type="text/javascript" src="common/gl-matrix.js"></script>
+		<script type="text/javascript" src="common/constants.js"></script>
+		<script type="text/javascript" src="GlCanvas.js"></script>
+		<script type="text/javascript" src="GlObject.js"></script>
+		<script type="text/javascript" src="Camera.js"></script>
+		<script type="text/javascript" src="Cube.js"></script>
+		<script type="text/javascript" src="Palm.js"></script>
+		<script type="text/javascript" src="Surface.js"></script>
+		<script type="text/javascript" src="Water.js"></script>
+		<script type="text/javascript" src="Licht.js"></script>
+		
+
+		<style>
+			body {
+				max-width: 1000px;
+				margin: auto;
+			}
+			#gl-canvas {
+				border: 1px solid #00000066;
+				margin: auto;
+				display: block
+			}
+			.slider {
+				background: transparent;
+				display: block;
+				height: 1.2rem;
+				width: 12em;
+			}
+			.slider::-moz-range-thumb {
+				background: #5755d9;
+				border: 0;
+				height: 0.6rem;
+				width: 0.6rem;
+			}
+			.slider::-moz-range-track {
+				background: #f0f1f4;
+				border-radius: 0.25rem;
+				height: 0.25rem;
+				width: 100%;
+			}
+		</style>
+	</head>
+	<body onload="init()">
+		<h1>Insel</h1>
+
+		<label for="terrain">Terrain</label>
+		<input id="terrain" class="slider" type="range" min="0" max="20" value="0" oninput="increaseZIndex(this.value)" onchange="increaseZIndex(this.value)"/>
+		<input id="play" type="button" onclick="rpl()" value="play" style="margin: 5px 0 10px 0"/>
+
+		<br/>
+		<label for="lichtX">Licht X-Koordinate</label>
+		<input id="lichtX" class="slider" type="range" min="-100" max="100" value="0"/>
+
+		<label for="lichtZ">Licht Z-Koordinate</label>
+		<input id="lichtZ" class="slider" type="range" min="-100" max="100" value="0"/>
+
+		<canvas id="gl-canvas" width="1024" height="768">
+			If you see this, your browser doesn't support WebGL.
+		</canvas>
+
+		<div style="margin-top: 5px">
+			Controls:<br>
+			W - walk forward<br>
+			A - strafe left<br>
+			S - walk backward<br>
+			D - strafe right<br>
+			R - rise<br>
+			F - fall
+		</div>
+
+		<script type="text/javascript" src="GlCanvas.js"></script>
+		<script type="text/javascript" src="insel.js"></script>
+
+	</body>
+</html>
