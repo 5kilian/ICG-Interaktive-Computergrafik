@@ -237,7 +237,7 @@ function GlCanvas() {
 
             this.gl.uniform3fv(this.getUniform('lichtPosition[' + i + ']'), [lichtPosition[0], lichtPosition[1], lichtPosition[2]]);
         }
-        this.gl.uniform3fv(this.getUniform('lichtIntensitaetAmbient'), [ 0.5, 0.5, 0.5]);
+        this.gl.uniform3fv(this.getUniform('lichtIntensitaetAmbient'), [ 0.0, 0.0, 0.0]);
 
         this.gl.uniform3fv(this.getUniform('reflexionsKoeffizientAmbient'), object.reflexionsKoeffizientAmbient);
         this.gl.uniform3fv(this.getUniform('reflexionsKoeffizientDiffus'), object.reflexionsKoeffizientDiffus);
