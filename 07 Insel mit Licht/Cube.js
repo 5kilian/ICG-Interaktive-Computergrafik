@@ -7,20 +7,12 @@
  * Tim Kilian 6824270
  */
 
-/**
- * Das ist ein Punktlicht.
- */
-function Licht(x, y, z) {
+
+function Cube(x, y, z) {
 
     GlObject.call(this, x, y, z);
 
-    this.setColorDiffus = (r, g, b) =>{
-        this.rgbDiffus =  [r, g, b];
-    }
-
-    this.setColorSpekular = (r, g, b) =>{
-        this.rgbSpekular = [r, g, b];
-    }
+    Cube.prototype.scale = this.scale;
 
     this.scale = (size) => {
         this.positions = [
@@ -83,11 +75,16 @@ function Licht(x, y, z) {
             0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1
         ];
 
+        this.textureCoordinates = [];
+        for (let i=0; i<(this.positions.length/3)/3; i++) {
+            if (i%2===0) this.textureCoordinates.push(0, 0, 1, 1, 0, 1);
+            else this.textureCoordinates.push(0, 0, 1, 1, 1, 0);
+        }
+
+        return this._scale();
     };
 
-
-    this.rgbDiffus = [1.0, 1.0, 1.0];
-    this.rgbSpekular = [1.0, 1.0, 1.0];
-    this.objects = [];
+    this.type = 'cube';
+    this.textureSrc = 'assets/bathroom-texture.jpg';
     this.construct();
 }

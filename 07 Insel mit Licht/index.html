@@ -1,0 +1,215 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta charset="utf-8"/>
+		<title>07 Insel</title>
+
+		<script id="vertex-shader" type="x-shader/x-vertex">
+			attribute vec3 vPosition;
+			attribute vec4 vColor;
+			attribute vec2 vTexture;
+			attribute vec3 vNormal;
+
+			uniform mat4 mProjection;
+			uniform mat4 mModel;
+			uniform mat4 mView;
+			uniform mat3 mNormal;
+
+			varying vec4 fvModelPosition;
+			varying vec4 fvColor;
+			varying vec2 fvTexture;
+			varying vec3 fvNormal;
+			varying mat3 TBN;
+
+			void main() {
+				fvColor = vColor;
+				fvTexture = vTexture;
+
+				// fvNormal = mNormal * vec3(normalize(vec4(vPosition, 1)));
+				fvNormal = mNormal * vNormal;
+
+				vec3 tangent;
+				vec3 t1 = cross(fvNormal, vec3(0.0, 0.0, 1.0));
+				vec3 t2 = cross(fvNormal, vec3(0.0, 1.0, 0.0));
+
+				vec3 T = normalize(mNormal * (length(t1) > length(t2) ? normalize(t1) : normalize(t2)));
+				vec3 N = normalize(fvNormal);
+				T = normalize(T - dot(T, N) * N);
+				vec3 B = normalize(cross(T, N));
+				TBN = mat3(T, B, N);
+
+				fvModelPosition = mModel * vec4(vPosition, 1);
+
+				gl_Position = mProjection * mView * fvModelPosition;
+			}
+		</script>
+		<script id="fragment-shader" type="x-shader/x-fragment">
+			precision mediump float;
+			const int MAX_LIGHT_SOURCES = 100;
+
+			varying vec4 fvModelPosition;
+			varying vec4 fvColor;
+			varying vec2 fvTexture;
+			varying vec3 fvNormal;
+			varying mat3 TBN;
+
+			const float c1 = 1.0;
+			const float c2 = 0.0005;
+			const float c3 = 0.000003;
+
+			uniform int iLightSources;
+			uniform vec3 vLightSources[MAX_LIGHT_SOURCES];
+			uniform vec3 rgbDiffus[MAX_LIGHT_SOURCES];
+			uniform vec3 rgbSpecular[MAX_LIGHT_SOURCES];
+
+			uniform sampler2D uSampler;
+			uniform sampler2D uNormalSampler;
+			uniform vec3 vAmbient;
+			uniform vec3 vEye;
+			uniform bool bUseTexture;
+
+			void main() {
+				vec3 vDiffus = vec3(0);
+				vec3 vSpecular = vec3(0);
+
+				vec3 N = normalize(texture2D(uNormalSampler, fvTexture).rgb * 2.0 - 1.0);
+				for (int i=0; i<MAX_LIGHT_SOURCES; i++) {
+					if (i >= iLightSources) break;
+
+					// Calculate fAtt
+					float d = distance(vLightSources[i], fvModelPosition.xyz);
+					float fAtt = min(1.0/(c1 + c2 * d + c3 * pow(d, 2.0)), 1.0);
+
+					vec3 L = normalize(TBN * (vLightSources[i] - fvModelPosition.xyz));
+					vec3 R = reflect(-L, N);
+					vec3 V = normalize(TBN * (vEye-fvModelPosition.xyz));
+
+					vDiffus += rgbDiffus[i] * fAtt * clamp(dot(N, L), 0.0, 1.0);
+					vSpecular += rgbSpecular[i] * fAtt * pow(clamp(dot(R, V), 0.0, 1.0), 20.0);
+				}
+
+				if (bUseTexture) {
+					gl_FragColor = texture2D(uSampler, fvTexture);
+				} else {
+					gl_FragColor = fvColor;
+				}
+
+				gl_FragColor.rgb *= (vAmbient + vDiffus + vSpecular);
+			}
+		</script>
+		<script id="vertex-shader-skybox" type="x-shader/x-vertex">
+			attribute vec3 vPosition;
+			attribute vec4 vColor;
+			attribute vec2 vTexture;
+			attribute vec3 vNormal;
+
+			uniform mat4 mProjection;
+			uniform mat4 mModel;
+			uniform mat4 mView;
+			uniform mat3 mNormal;
+
+			varying vec3 fvPosition;
+
+			void main() {
+				gl_Position = mProjection * mView * mModel * vec4(vPosition, 1);
+				fvPosition = vPosition.xyz;
+			}
+		</script>
+		<script id="fragment-shader-skybox" type="x-shader/x-fragment">
+			precision mediump float;
+			const int MAX_LIGHT_SOURCES = 100;
+
+			varying vec3 fvPosition;
+
+			uniform int iLightSources;
+			uniform vec3 vLightSources[MAX_LIGHT_SOURCES];
+			uniform vec3 rgbDiffus[MAX_LIGHT_SOURCES];
+			uniform vec3 rgbSpecular[MAX_LIGHT_SOURCES];
+
+			uniform samplerCube uSampler;
+			uniform vec3 vAmbient;
+			uniform vec3 vEye;
+			uniform bool bUseTexture;
+
+			void main() {
+				gl_FragColor = textureCube(uSampler, fvPosition);
+			}
+		</script>
+
+		<script type="text/javascript" src="common/initShaders.js"></script>
+		<script type="text/javascript" src="common/gl-matrix.js"></script>
+		<script type="text/javascript" src="common/constants.js"></script>
+		<script type="text/javascript" src="GlCanvas.js"></script>
+		<script type="text/javascript" src="GlObject.js"></script>
+		<script type="text/javascript" src="Camera.js"></script>
+		<script type="text/javascript" src="Cube.js"></script>
+		<script type="text/javascript" src="Palm.js"></script>
+		<script type="text/javascript" src="Surface.js"></script>
+		<script type="text/javascript" src="Water.js"></script>
+		<script type="text/javascript" src="Light.js"></script>
+		<script type="text/javascript" src="Skybox.js"></script>
+
+		<style>
+			body {
+				max-width: 1000px;
+				margin: auto;
+			}
+			#gl-canvas {
+				border: 1px solid #00000066;
+				margin: auto;
+				display: block
+			}
+			.slider {
+				background: transparent;
+				display: block;
+				height: 1.2rem;
+				width: 12em;
+			}
+			.slider::-moz-range-thumb {
+				background: #5755d9;
+				border: 0;
+				height: 0.6rem;
+				width: 0.6rem;
+			}
+			.slider::-moz-range-track {
+				background: #f0f1f4;
+				border-radius: 0.25rem;
+				height: 0.25rem;
+				width: 100%;
+			}
+		</style>
+	</head>
+	<body onload="init()">
+		<h1>Insel</h1>
+
+		<label for="terrain">Terrain</label>
+		<input id="terrain" class="slider" type="range" min="0" max="20" value="0" oninput="increaseZIndex(this.value)" onchange="increaseZIndex(this.value)"/>
+		<input id="play" type="button" onclick="rpl()" value="play" style="margin: 5px 0 10px 0"/>
+
+		<br/>
+		<label for="lichtX">Licht X-Koordinate</label>
+		<input id="lichtX" class="slider" type="range" min="-100" max="100" value="0"/>
+
+		<label for="lichtY">Licht Y-Koordinate</label>
+		<input id="lichtY" class="slider" type="range" min="-100" max="100" value="0"/>
+
+		<label for="lichtZ">Licht Z-Koordinate</label>
+		<input id="lichtZ" class="slider" type="range" min="-100" max="100" value="0"/>
+
+		<canvas id="gl-canvas" width="1024" height="768">
+			If you see this, your browser doesn't support WebGL.
+		</canvas>
+
+		<div style="margin-top: 5px">
+			Controls:<br>
+			W - walk forward<br>
+			A - strafe left<br>
+			S - walk backward<br>
+			D - strafe right<br>
+			R - rise<br>
+			F - fall
+		</div>
+
+		<script type="text/javascript" src="insel.js"></script>
+	</body>
+</html>
