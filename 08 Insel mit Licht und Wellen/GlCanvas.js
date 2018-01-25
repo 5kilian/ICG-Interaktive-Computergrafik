@@ -19,6 +19,7 @@ function GlCanvas() {
         // 4. Init shader program via additional function and bind it
         this.programNormal = initShader(this.gl, "vertex-shader", "fragment-shader");
         this.programSkybox = initShader(this.gl, "vertex-shader-skybox", "fragment-shader-skybox");
+        this.programWater = initShader(this.gl, "vertex-shader-water", "fragment-shader-water");
         this.program = this.programNormal;
         this.gl.useProgram(this.program);
 
@@ -124,9 +125,18 @@ function GlCanvas() {
     this.render = () => {
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
-        this.program = this.programNormal;
-        this.gl.useProgram(this.program);
+        
+        //this.program = this.programNormal;
+        //this.gl.useProgram(this.program);
         this.objects.forEach(object => {
+            if(object.constructor.name == "Water"){ //Der Stamm der Palme benutzt einen anderen Shader.
+                this.program = this.programWater;
+                this.gl.useProgram(this.programWater);
+            }
+            else{
+                this.program = this.programNormal;
+                this.gl.useProgram(this.programNormal);
+            }
             this.gl.drawArrays(object.glMode, 0, this.drawObject(object));
         });
 
@@ -140,6 +150,9 @@ function GlCanvas() {
     this.timer = new Date().getTime();
 
     this.drawObject = (object) => {
+        
+
+
         // 5. Create VBO
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.gl.createBuffer());
 
@@ -205,7 +218,9 @@ function GlCanvas() {
         // 7.6 Save uniform location and save the projection matrix into it
         this.gl.uniformMatrix4fv(this.getUniform('mProjection'), false, perspective(Math.PI / 4, 0.5, 100));
         
-			this.gl.uniform1f(this.getUniform('fTimer'), false, new Date().getTime() - this.timer + 0.0);        
+        let delta = new Date().getTime() - this.timer + 0.0;
+        this.gl.uniform1f(this.getUniform('fTimer'), delta/1000); 
+                   
         
         return object.positions.length / 3;
     };

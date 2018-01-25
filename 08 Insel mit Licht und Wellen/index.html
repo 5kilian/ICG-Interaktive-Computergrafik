@@ -39,18 +39,134 @@
 				vec3 B = normalize(cross(T, N));
 				TBN = mat3(T, B, N);
 				
-				//vPosition.y = amplitude * sin(2*pi*frequence * vertex.x + timer * speed)
 
-				float speed = 1.0;
-				float pi = 3.141;
-				float frequence = 200.0;				
-				
-				float vPosition2 = vPosition.y + sin(2.0*pi*frequence * vPosition.x + fTimer * speed);
-
-				fvModelPosition = mModel * vec4(vPosition.x, vPosition2, vPosition.z, 1);
+				fvModelPosition = mModel * vec4(vPosition.x, vPosition.y, vPosition.z, 1);
 				
 
 				gl_Position = mProjection * mView * fvModelPosition;
+			}
+		</script>
+		<script id="vertex-shader-water" type="x-shader/x-vertex">
+			attribute vec3 vPosition;
+			attribute vec4 vColor;
+			attribute vec2 vTexture;
+			attribute vec3 vNormal;
+
+			uniform mat4 mProjection;
+			uniform mat4 mModel;
+			uniform mat4 mView;
+			uniform mat3 mNormal;
+			uniform float fTimer;
+
+			varying vec4 fvModelPosition;
+			varying vec4 fvColor;
+			varying vec2 fvTexture;
+			varying vec3 fvNormal;
+			varying mat3 TBN;
+			varying vec3 normal;
+
+			//Berechnet den neuen Vertex
+			vec3 f(vec3 vertex){
+				float amplitude = 0.5;
+				float speed = 1.0;
+				float pi = 3.141;
+				float frequence = 200.0;				
+				float y = vertex.y + amplitude * sin(2.0*pi*frequence * vertex.x + fTimer * speed);
+				return vec3(vertex.x, y, vertex.z);
+			}
+
+			vec3 calculateNormal(vec3 vertex){
+				float epsilon = 0.1;
+				vec3 vertexEpsilonX = vec3(vertex.x + epsilon, vertex.y, vertex.z);
+				vec3 vertexEpsilonZ = vec3(vertex.x, vertex.y, vertex.z + epsilon);
+
+				vec3 Vec3XZ = f(vertex);
+				vec3 Vec3EpsilonX =  f(vertexEpsilonX); 
+				vec3 Vec3EpsilonZ = f(vertexEpsilonZ); 
+
+				vec3 t = Vec3EpsilonX - Vec3XZ;
+				vec3 b =  Vec3EpsilonZ - Vec3XZ;
+				return normalize(cross(b,t));
+			}
+
+			void main() {
+				fvColor = vColor;
+				fvTexture = vTexture;				
+				
+				fvModelPosition = mModel * vec4(f(vPosition), 1);
+
+				normal = calculateNormal(fvModelPosition.xyz);
+				fvNormal = mNormal * normal;
+
+				vec3 tangent;
+				vec3 t1 = cross(fvNormal, vec3(0.0, 0.0, 1.0));
+				vec3 t2 = cross(fvNormal, vec3(0.0, 1.0, 0.0));
+
+				vec3 T = normalize(mNormal * (length(t1) > length(t2) ? normalize(t1) : normalize(t2)));
+				vec3 N = normalize(fvNormal);
+				T = normalize(T - dot(T, N) * N);
+				vec3 B = normalize(cross(T, N));
+				TBN = mat3(T, B, N);
+				
+				//vPosition.y = amplitude * sin(2*pi*frequence * vertex.x + timer * speed)
+
+				
+
+				gl_Position = mProjection * mView * fvModelPosition;
+			}
+		</script>
+		<script id="fragment-shader-water" type="x-shader/x-fragment">
+			precision mediump float;
+			const int MAX_LIGHT_SOURCES = 100;
+
+			varying vec4 fvModelPosition;
+			varying vec4 fvColor;
+			varying vec2 fvTexture;
+			varying vec3 fvNormal;
+			varying mat3 TBN;
+
+			const float c1 = 1.0;
+			const float c2 = 0.0005;
+			const float c3 = 0.000003;
+
+			uniform int iLightSources;
+			uniform vec3 vLightSources[MAX_LIGHT_SOURCES];
+			uniform vec3 rgbDiffus[MAX_LIGHT_SOURCES];
+			uniform vec3 rgbSpecular[MAX_LIGHT_SOURCES];
+
+			uniform sampler2D uSampler;
+			uniform sampler2D uNormalSampler;
+			uniform vec3 vAmbient;
+			uniform vec3 vEye;
+			uniform bool bUseTexture;
+
+			void main() {
+				vec3 vDiffus = vec3(0);
+				vec3 vSpecular = vec3(0);
+
+				vec3 N = normalize(texture2D(uNormalSampler, fvTexture).rgb * 2.0 - 1.0);
+				for (int i=0; i<MAX_LIGHT_SOURCES; i++) {
+					if (i >= iLightSources) break;
+
+					// Calculate fAtt
+					float d = distance(vLightSources[i], fvModelPosition.xyz);
+					float fAtt = min(1.0/(c1 + c2 * d + c3 * pow(d, 2.0)), 1.0);
+
+					vec3 L = normalize(TBN * (vLightSources[i] - fvModelPosition.xyz));
+					vec3 R = reflect(-L, N);
+					vec3 V = normalize(TBN * (vEye-fvModelPosition.xyz));
+
+					vDiffus += rgbDiffus[i] * fAtt * clamp(dot(N, L), 0.0, 1.0);
+					vSpecular += rgbSpecular[i] * fAtt * pow(clamp(dot(R, V), 0.0, 1.0), 20.0);
+				}
+
+				if (bUseTexture) {
+					gl_FragColor = texture2D(uSampler, fvTexture);
+				} else {
+					gl_FragColor = fvColor;
+				}
+
+				gl_FragColor.rgb *=  (vAmbient + vDiffus + vSpecular);
 			}
 		</script>
 		<script id="fragment-shader" type="x-shader/x-fragment">
