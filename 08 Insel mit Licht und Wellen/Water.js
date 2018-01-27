@@ -46,7 +46,7 @@ function Water(x, y, z) {
     this.textureSrc = 'assets/water_diffuse.jpg';
     this.normalSrc = 'assets/water_normal.jpg';
     this.shininess = 20.0;
-    this.segments = 4;
+    this.segments = 50;
 
     this.construct();
 }
