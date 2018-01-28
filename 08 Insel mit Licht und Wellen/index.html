@@ -173,9 +173,14 @@
 				float speed = 1.8;
 				float pi = 3.141;
 				float frequence = 400.0;				
-				float simplexNoiseAmplitude = 0.2;
+				float simplexNoiseAmplitude = 0.18;
 
-				float y = vertex.y + simplexNoiseAmplitude * snoise(vec4(vertex, fTimer* 0.66))+ amplitude * sin(2.0*pi*frequence * vertex.x + fTimer * speed) ;
+				float welleAusXRichtung = amplitude * sin(2.0*pi*frequence * vertex.x + + fTimer * speed);
+				float welleAusZXDiagonalen = amplitude * sin(2.0*pi*frequence * (vertex.z + vertex.x) + fTimer * speed * 0.6);
+				float welle = welleAusXRichtung + welleAusZXDiagonalen;
+
+				float noise =  simplexNoiseAmplitude * snoise(vec4(vertex, fTimer* 0.66));
+				float y = vertex.y + noise + welle;
 				return vec3(vertex.x, y, vertex.z);
 			}
 
